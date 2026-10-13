@@ -60,6 +60,62 @@ export const strings = {
     loading: "Loading schools…",
   },
 
+  months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+
+  risk: {
+    high: "High risk",
+    medium: "Medium risk",
+    low: "Lower risk",
+    percentile: (p: number) => `Riskier than ${p}% of Fairfax-area streets`,
+  },
+
+  crash: {
+    severity: { K: "Fatal", A: "Serious injury", B: "Visible injury", C: "Injury (not visible)", O: "No injury" },
+  },
+
+  // S4 · Map
+  map: {
+    layers: { risk: "Risk", crashes: "Crashes", reports: "Reports" },
+    legend: { high: "High risk", medium: "Medium risk", crash: "Crash", report: "Student report" },
+    planRoute: "Plan my route",
+    reportCloseCall: "Report a close call",
+    loadError: "Couldn't load the map data",
+    retry: "Retry",
+    notReadyTitle: "This school's map isn't ready yet",
+    notReadyBody: "Pick a different school to keep going.",
+    changeSchool: "Change school",
+    loadingMap: "Loading the map…",
+    howScoresWork: "How risk scores work",
+    schoolMarker: (name: string) => `${name} entrance`,
+    crashMarker: (mode: "ped" | "bike", year: number) =>
+      `${mode === "ped" ? "Crash involving someone walking" : "Crash involving someone biking"}, ${year}`,
+  },
+
+  // S19 · How risk scores work
+  howItWorks: {
+    title: "How risk scores work",
+    sections: [
+      {
+        title: "What the colors mean",
+        body: "Red streets are riskier than 90% of streets in the Fairfax area. Amber streets are riskier than 70%.",
+      },
+      {
+        title: "What CrossCheck looks at",
+        body: "Speed limits, number of lanes, sidewalks, traffic signals, how many cars use the road, the type of road, and where people walking or biking were hit before.",
+      },
+    ],
+    testedTitle: "How we tested it",
+    tested: (capture: number) =>
+      `We trained on crashes from 2017–2020 and checked whether it could predict where crashes happened in 2021–2024, in parts of the county it hadn't seen. The 10% of streets it ranked riskiest had ${capture}% of those crashes.`,
+    routesTitle: "How lower-risk routes work",
+    routes: "Risky streets count as longer than they really are, so the route finder goes around them when the detour is short enough.",
+    limitsTitle: "What it can't know",
+    limits: (dataThrough: string) =>
+      `It doesn't know how many people walk each street, crash data runs through ${dataThrough}, and values marked ≈ are estimates. Lower-risk isn't risk-free.`,
+    loading: "Loading…",
+    loadError: "Couldn't load the latest numbers.",
+  },
+
   placeholders: {
     map: { title: "Map", body: "Your school's risk map will appear here." },
     route: { title: "Route", body: "Plan a lower-risk route to school here." },

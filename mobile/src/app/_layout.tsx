@@ -38,6 +38,10 @@ function AppStack() {
         name="settings"
         options={{ presentation: "modal", headerShown: true, title: strings.header.settings }}
       />
+      <Stack.Screen
+        name="how-it-works"
+        options={{ presentation: "modal", headerShown: true, title: strings.howItWorks.title }}
+      />
     </Stack>
   );
 }

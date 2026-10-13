@@ -2,7 +2,7 @@ import { onlineManager, useQuery } from "@tanstack/react-query";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { apiFetch } from "@/api/client";
-import type { School } from "@/api/types";
+import type { CrashFeature, FeatureCollection, Meta, RiskFeature, School } from "@/api/types";
 
 // Waking a sleeping free host can take up to a minute, so keep trying for about that long.
 const WAKE_RETRIES = 12;
@@ -57,6 +57,35 @@ export function useSchools() {
   return useQuery({
     queryKey: ["schools"],
     queryFn: () => apiFetch<School[]>("/schools"),
+    staleTime: ONE_DAY_MS,
+  });
+}
+
+/** Medium and high risk streets near a school (GeoJSON). */
+export function useRiskLayer(schoolId: string | null) {
+  return useQuery({
+    queryKey: ["risk-layer", schoolId],
+    queryFn: () => apiFetch<FeatureCollection<RiskFeature>>(`/schools/${schoolId}/risk-layer`),
+    enabled: !!schoolId,
+    staleTime: ONE_DAY_MS,
+  });
+}
+
+/** Past pedestrian and bike crashes near a school (GeoJSON points). */
+export function useCrashes(schoolId: string | null) {
+  return useQuery({
+    queryKey: ["crashes", schoolId],
+    queryFn: () => apiFetch<FeatureCollection<CrashFeature>>(`/schools/${schoolId}/crashes`),
+    enabled: !!schoolId,
+    staleTime: ONE_DAY_MS,
+  });
+}
+
+/** Data dates and model accuracy (GET /meta). */
+export function useMeta() {
+  return useQuery({
+    queryKey: ["meta"],
+    queryFn: () => apiFetch<Meta>("/meta"),
     staleTime: ONE_DAY_MS,
   });
 }

@@ -60,3 +60,10 @@ CRASH_OUT_FIELDS = (
 ARCGIS_PAGE_SIZE = 2000       # the server's maxRecordCount
 ARCGIS_PAUSE_S = 0.5          # wait between page requests
 KA_SEVERITIES = ("K", "A")    # fatal, severe
+
+# Step 1.3 — OpenStreetMap
+STUDY_AREA_MODE = "pilot"      # "pilot": circles around the pilot schools (light on memory); "county": whole study area
+PILOT_AREA_RADIUS_M = 8000     # "pilot" mode: circle around each pilot school
+OSM_NETWORK_TYPE = "drive_service"
+OSM_POINT_TAGS = {"highway": ["traffic_signals", "crossing", "bus_stop"]}
+OSM_SIDEWALK_TAGS = {"footway": "sidewalk"}

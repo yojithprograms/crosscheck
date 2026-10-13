@@ -279,6 +279,8 @@ STUDY_AREA_QUERIES = ["Fairfax County, Virginia, USA", "City of Fairfax, Virgini
 SCHOOL_BUFFER_EXTRA_M = 500                    # study area also covers (radius_m + this) around each pilot school
 CRS_METERS = "EPSG:32618"                      # UTM zone 18N, meters
 CRASH_BBOX = (-77.60, 38.55, -77.00, 39.10)    # lon/lat box around the study area plus a margin (clipped later)
+STUDY_AREA_MODE = "pilot"                      # "pilot" = circles around the pilot schools (light on memory); "county" = whole study area
+PILOT_AREA_RADIUS_M = 8000                     # "pilot" mode: circle around each pilot school
 
 # Time windows (inclusive years)
 TRAIN_HIST = (2017, 2020)
@@ -366,6 +368,7 @@ TOP_SPOT_MIN_SPACING_M = 150
       if "crossing" not in ox.settings.useful_tags_node:
           ox.settings.useful_tags_node.append("crossing")
   ```
+- **Study-area mode (`STUDY_AREA_MODE`):** `"pilot"` (the current setting) builds the area from an `PILOT_AREA_RADIUS_M` circle around each pilot school plus each school's own `radius_m + SCHOOL_BUFFER_EXTRA_M` circle. It is a light first pass for laptops with little memory (about 385 km², 44,563 nodes, 98,986 edges for the six pilot schools). Set `"county"` to scale up to the whole county as described next.
 - **Study area:** `ox.geocoder.geocode_to_gdf(STUDY_AREA_QUERIES)` → `.union_all()`, plus a circle of `radius_m + SCHOOL_BUFFER_EXTRA_M` around each pilot school (buffer in `CRS_METERS`, then convert back to lon/lat), so streets just over a border (Falls Church, Arlington, Alexandria, Loudoun, Prince William) still get scores → save `data/interim/study_area.gpkg`. Check that the City of Fairfax is filled in, not a hole. If a query doesn't return a boundary, find the place's relation ID on openstreetmap.org and use `ox.geocoder.geocode_to_gdf("R<id>", by_osmid=True)`.
 - **Road network for the model:** `ox.graph.graph_from_polygon(poly, network_type="drive_service", simplify=True, retain_all=True)` → `ox.io.save_graphml(G, "data/interim/drive.graphml")`. `drive_service` includes driveways and shopping-center aisles, where some crashes happen.
 - **Points:** `ox.features.features_from_polygon(poly, tags={"highway": ["traffic_signals", "crossing", "bus_stop"]})` → keep Point geometries → `data/interim/osm_points.gpkg` (keep the `highway` and `crossing` columns).

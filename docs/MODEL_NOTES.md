@@ -21,3 +21,14 @@
 - Small sample: only 624 positive segments, about 125 per fold, so the numbers are noisy. Expect them to move if the study area grows to the whole county (`STUDY_AREA_MODE = "county"`).
 - `sidewalk_cov` adds county and OSM sidewalk lengths, so a sidewalk mapped in both sources can look like two sides.
 - VDOT does not guarantee its crash data is accurate or complete. Crashes on freeways were not matched to segments.
+
+## Step 1.8 — Scores and reasons (2026-10-12)
+
+**Scores.** Every segment gets a crash probability from the model using 2022–2025 history, turned into a percentile among all 53,131 segments in the pilot area: high is the top 10% (5,314 segments), medium the next 20% (10,626), and low the rest. Each feature's push on a score is its coefficient times the segment's standardized value, and those pushes plus the intercept add up exactly to the model's log-odds (checked in code and in a test).
+
+**Spot checks.** The big roads come out high: Main Street (median percentile 94), Leesburg Pike (92.6), Chain Bridge Road (92.5), Gallows Road (90.3), Annandale Road (91.2), Pickett Road (88.3). Short residential streets with no crashes are low 84% of the time. Pickett Road is near Frost MS and its segments run between the 80s and 100.
+
+**Surprises.**
+- Because the weights capture exposure, the **speed reason never shows**: faster streets don't push risk up in this model, so by the "positive push" rule they can't be explained by speed. The no-sidewalk reason showed on only 136 segments for the same reason (sidewalks push risk *up*).
+- With only the Appendix A reasons, 41.5% of high-risk streets had no reason at all. We added plain-words **context reasons** (road type, bus stops, crosswalks, sidewalks, length) for medium and high segments with no other reason, so every colored street has a "why". Only 18 of 15,940 colored segments fall back to the generic sentence.
+- The context reasons describe what the model uses (exposure and road type), not proof of danger. S19 should keep saying the score doesn't know how many people walk each street.

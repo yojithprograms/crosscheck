@@ -1,0 +1,49 @@
+{
+  "model_version": "logreg-20261013",
+  "trained_on": {
+    "segments": 53131,
+    "positive_segments": 624,
+    "label_crashes": 676,
+    "hist_window": [
+      2017,
+      2020
+    ],
+    "label_window": [
+      2021,
+      2024
+    ],
+    "study_area_mode": "pilot"
+  },
+  "cv": {
+    "folds": 5,
+    "grid_cell_m": 2000,
+    "models": {
+      "length_only": {
+        "roc_auc": 0.6500981493065882,
+        "pr_auc": 0.020427781749656378,
+        "top10_capture": 0.20562130177514792,
+        "lift": 2.056213017751479
+      },
+      "history_only": {
+        "roc_auc": 0.6838130373825614,
+        "pr_auc": 0.0607002554378598,
+        "top10_capture": 0.29142011834319526,
+        "lift": 2.9142011834319526
+      },
+      "roads_only": {
+        "roc_auc": 0.8760461059404533,
+        "pr_auc": 0.0901262823303335,
+        "top10_capture": 0.6124260355029586,
+        "lift": 6.124260355029586
+      },
+      "full": {
+        "roc_auc": 0.8779960291008818,
+        "pr_auc": 0.10307004427363177,
+        "top10_capture": 0.6405325443786982,
+        "lift": 6.405325443786982
+      }
+    }
+  },
+  "full_top10_capture": 0.6405325443786982,
+  "full_lift": 6.405325443786982
+}

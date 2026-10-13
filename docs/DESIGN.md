@@ -450,8 +450,8 @@ TOP_SPOT_MIN_SPACING_M = 150
 - **Today's features:** same columns, but `log_hist = log(1 + hist_serve)`.
 - **Score:** `p = model.predict_proba(X_today)[:, 1]`; `risk_pct = pd.Series(p).rank(pct=True) * 100` (percentile rank across all segments); `risk_class = "high"` if ≥ `HIGH_PCT`, `"medium"` if ≥ `MEDIUM_PCT`, else `"low"`.
 - **Contributions:** `contrib_j = coef_j × z_j`, where `z_j` is the standardized value of feature *j* for this segment. It means "how much this feature pushes the segment above an average segment."
-- **Reasons:** among *explainable* features (speed, lanes, no sidewalk, road class, crash history, traffic volume), a feature becomes a reason only if its contribution is positive **and** its Appendix A condition is true. Order by contribution, largest first, and keep at most 3. If `crashes_recent ≥ 1`, the crash-history sentence always goes first. Features without a template (`log_length`, `oneway`, `signal_end`, `marked_crossings`, `bus_stops_200m`, `*_imputed`, `sidewalk_known`) are never reasons.
-- **Output:** `data/interim/segments_scored.parquet` with `risk_pct`, `risk_class`, `reasons` (list of strings), and `contribs` (JSON).
+- **Reasons:** among *explainable* features (speed, lanes, no sidewalk, road class, crash history, traffic volume), a feature becomes a reason only if its contribution is positive **and** its Appendix A condition is true. Order by contribution, largest first, and keep at most 3. If `crashes_recent ≥ 1`, the crash-history sentence always goes first. Features without an Appendix A template (`oneway`, `signal_end`, `*_imputed`, `sidewalk_known`) are never reasons. Sidewalk coverage, bus stops, marked crossings, length, and the secondary/tertiary road classes appear only as plain-words **context reasons** (Appendix A): used when a medium or high segment has no other reason, so a colored street is never left without a "why".
+- **Output:** `data/interim/segments_scored.parquet` with `risk_pct`, `risk_class`, `reasons` (list of strings), `reason_kinds` (the kind of each reason, used for the "ask about" lines in Step 1.11), and `contribs` (JSON).
 - **Done when:** you spot-check 10 streets you know (a big arterial near school should be high; a quiet cul-de-sac low) and note surprises in `MODEL_NOTES.md`.
 
 ### Step 1.9 (optional) — Traffic volume (`s09_aadt.py`)
@@ -1382,7 +1382,18 @@ Put new ideas in `docs/IDEAS.md` first. Good next steps:
 | Crossing/intersection hazard, `lanes ≥ WIDE_ROAD_LANES`, `signal_end == 0` | "No traffic signal where you cross" | "Could this crossing get a signal or beacon?" |
 | Traffic volume (Step 1.9) | "About {aadt:,} cars a day" | — |
 
-Show at most three reasons. The crash-history sentence always shows (first) when `crashes_recent ≥ 1`, and the server adds the no-signal sentence to hazards (§7.7). Every other reason also needs a positive contribution (Step 1.8).
+Show at most three reasons. The crash-history sentence always shows (first) when `crashes_recent ≥ 1`, and the server adds the no-signal sentence to hazards (§7.7). Every other reason also needs a positive contribution (Step 1.8). The model's weights are exposure-flavored (see `MODEL_NOTES.md`), so in practice the speed reason never shows and the no-sidewalk reason is rare.
+
+**Context reasons (fallback).** A medium or high segment with none of the reasons above gets up to `MAX_CONTEXT_REASONS` (2) of these, largest model push first. Each needs its condition to be true and a positive push from its model features. If none qualifies, one generic sentence is used.
+
+| Condition | Text |
+|---|---|
+| Secondary or tertiary road | "A busier through street, not a quiet neighborhood road" |
+| ≥ 1 bus stop within 200 m | "Bus stops nearby" |
+| ≥ `FALLBACK_MIN_CROSSINGS` marked crossings | "Many crosswalks nearby" |
+| `sidewalk_cov ≥ FALLBACK_BUSY_SIDEWALK_COV` | "Sidewalks here likely mean more people on foot" |
+| Length ≥ `FALLBACK_LONG_SEGMENT_M` | "A long stretch of road" |
+| None of the above | High: "Ranks high among nearby streets overall, based on road type and surroundings"; medium: "Ranks above most nearby streets overall, based on road type and surroundings" |
 
 ## Appendix B — Hazard types, severity, and who can fix it
 

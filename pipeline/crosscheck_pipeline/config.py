@@ -88,3 +88,11 @@ FALLBACK_LANES = {"trunk": 4, "primary": 4, "secondary": 2, "tertiary": 2, "resi
 DEFAULT_LANES = 2                         # classes not listed above
 MIN_SEGMENT_LENGTH_M = 1.0                # guard against zero-length segments in ratios
 SEGMENT_CHUNK = 20000                     # segments processed per batch when overlaying sidewalks
+
+# Step 1.8 — scoring and reasons
+MAX_REASONS = 3                   # at most this many reasons per segment
+MAJOR_ROAD_CLASSES = ("trunk", "primary")   # "Major road with heavy traffic"
+FALLBACK_MIN_CROSSINGS = 3        # "Many crosswalks nearby" needs at least this many marked crossings
+FALLBACK_LONG_SEGMENT_M = 200     # "A long stretch of road" needs at least this length
+FALLBACK_BUSY_SIDEWALK_COV = 0.5  # "Sidewalks likely mean more people on foot" needs at least this coverage
+MAX_CONTEXT_REASONS = 2           # fallback reasons per segment (they only appear when nothing else does)

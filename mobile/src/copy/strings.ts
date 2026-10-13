@@ -91,6 +91,36 @@ export const strings = {
       `${mode === "ped" ? "Crash involving someone walking" : "Crash involving someone biking"}, ${year}`,
   },
 
+  // S6 · Start and S7 · Pin picker
+  start: {
+    title: (school: string) => `Plan your route to ${school}`,
+    usualTitle: "My usual route",
+    usualBody: (mode: string) => `Saved start point · ${mode}`,
+    useIt: "Use it",
+    whereTitle: "Where are you starting?",
+    useLocation: "Use my location",
+    findingLocation: "Finding your location…",
+    dropPin: "Drop a pin on the map",
+    modes: { walk: "Walk", bike: "Bike / Scooter" },
+    tip: "Drop the pin near home. It doesn't have to be exact, and we don't save it.",
+    locationOff: "Location is off. You can drop a pin instead.",
+    locationUnavailable: "We couldn't find your location. You can drop a pin instead.",
+    outside: (school: string) => `That's outside the area CrossCheck covers for ${school}.`,
+  },
+  pin: {
+    back: "Back",
+    instruction: "Move the map so the pin is near where you start.",
+    moveInside: "Move the pin inside the circle.",
+    startHere: "Start here",
+    pinLabel: "Start point pin, fixed in the center of the map",
+  },
+  // Temporary until Step 4.2 builds the route results (S8).
+  pickedStart: {
+    title: "Start point chosen",
+    body: (miles: string, school: string) => `About ${miles} from ${school}. Route results are the next step.`,
+    changeStart: "Change start",
+  },
+
   // S5 · Detail cards
   cards: {
     close: "Close",

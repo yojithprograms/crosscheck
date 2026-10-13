@@ -936,16 +936,17 @@ mobile/
     ├── state/      store.ts (persisted), reportDraft.ts (not persisted)
     ├── map/        RiskLayer, CrashLayer, ReportLayer, RouteLayer, HazardMarkers, CoverageCircle, CenterPin
     ├── components/ PrimaryButton, SecondaryButton, TextButton, Chip, ChipGroup, Card, BottomCard,
-    │               RiskBadge, Legend, RouteCard, HazardRow, StepHeader, Banner, EmptyState,
-    │               LoadingOverlay, SafetyNote
+    │               RiskBadge, Legend, RouteStart (S6), PinPicker (S7), RouteCard, HazardRow, StepHeader,
+    │               Banner, EmptyState, LoadingOverlay, SafetyNote
     ├── theme/      colors.ts, type.ts, spacing.ts
     ├── copy/       strings.ts (all user-facing text)
-    └── utils/      geo.ts, format.ts, image.ts, errors.ts
+    └── utils/      geo.ts, format.ts, location.ts (one-time GPS read), image.ts, errors.ts
 ```
 
 ### 8.3 Navigation rules
 - The root layout is a `Stack` holding `onboarding`, `(tabs)`, and three modals (`settings`, `how-it-works`, `school-report`, each with `presentation: "modal"`). It waits for the saved store to load. If `ageGate` is `"under13"` → the S2 "ask an adult" message; if `onboarded` is false → `/onboarding/welcome`; otherwise the tabs.
 - Tabs: **Map** (home), **Route**, **Report**, **School**. A gear icon in the header opens Settings as a modal.
+- Route tab (`route.tsx`): S6 → S7 → S8 are one screen with in-memory step state (`start`, `pin`, `picked`). A start point is never persisted or logged unless the student taps "Save as my route." The app checks "inside the circle" against `radius_m` exactly; the server allows `AREA_SLACK` (1.1×), so the app is the stricter of the two. A GPS fix outside the circle, a denied permission, or a timeout (15 s) all send the student to the pin picker with a message.
 - Cross-links: Map "Plan my route" → Route tab; Map "Report a close call" → Report tab; a School top spot → Map focused on that spot; a hazard's "Report a problem here" → Report flow, starting with the safety check (S10), with the location filled in.
 
 ### 8.4 State (`src/state/store.ts`, zustand + persist to AsyncStorage)

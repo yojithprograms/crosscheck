@@ -1,4 +1,5 @@
 import type { LonLat } from "@/api/types";
+import type { LatLon } from "@/state/store";
 
 const METERS_PER_DEG_LAT = 110540;
 const METERS_PER_DEG_LON_AT_EQUATOR = 111320;
@@ -12,6 +13,11 @@ export type LatLng = { latitude: number; longitude: number };
  * swapping the two is the most common map bug.
  */
 export function toLatLng([lon, lat]: LonLat): LatLng {
+  return { latitude: lat, longitude: lon };
+}
+
+/** A {lat, lon} point (what the store and the API use) as react-native-maps wants it. */
+export function pointToLatLng({ lat, lon }: LatLon): LatLng {
   return { latitude: lat, longitude: lon };
 }
 

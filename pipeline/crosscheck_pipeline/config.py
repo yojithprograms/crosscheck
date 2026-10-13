@@ -76,3 +76,15 @@ COVERAGE_CELL_M = 1000                    # coverage grid cell size
 GAP_MIN_ROAD_M = 2000                     # a cell needs at least this much road to be judged
 GAP_MAX_COUNTY_RATIO = 0.05               # county sidewalk length / road length below this = "gap"
 GAP_ROAD_EXCLUDE = ("motorway", "motorway_link", "service")  # roads left out of the coverage denominator
+
+# Step 1.5 — road segments and features
+DROP_HIGHWAYS = ("motorway",)             # students don't walk there (links are mapped to their base class first)
+ROAD_CLASSES = ("trunk", "primary", "secondary", "tertiary", "residential", "unclassified", "service")  # one-hot; others = baseline
+FALLBACK_SPEED_MPH = {"trunk": 45, "primary": 40, "secondary": 35, "tertiary": 30, "residential": 25,
+                      "unclassified": 25, "living_street": 15, "service": 15}
+DEFAULT_SPEED_MPH = 25                    # classes not listed above
+FALLBACK_LANES = {"trunk": 4, "primary": 4, "secondary": 2, "tertiary": 2, "residential": 2,
+                  "unclassified": 2, "service": 1}
+DEFAULT_LANES = 2                         # classes not listed above
+MIN_SEGMENT_LENGTH_M = 1.0                # guard against zero-length segments in ratios
+SEGMENT_CHUNK = 20000                     # segments processed per batch when overlaying sidewalks

@@ -6,4 +6,3 @@ A mobile app that helps Fairfax County students walk, bike, or scoot to school b
 
 - Design: `docs/DESIGN.md`
 - Screens: `docs/APP_FLOW.md`
-- AI use log: `AI_USAGE.md`

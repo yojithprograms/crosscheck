@@ -27,6 +27,7 @@ REASON_FEATURES: dict[str, tuple[str, ...]] = {
     "lanes": ("lanes",),
     "no_sidewalk": ("sidewalk_cov", "no_sidewalk_fast"),
     "major_road": ("class_trunk", "class_primary"),
+    "traffic": ("log_aadt",),
 }
 
 # "Ask about" lines for the school report (Appendix A), keyed by reason kind.
@@ -40,7 +41,7 @@ ASK_ABOUT: dict[str, str] = {
 
 @dataclass(frozen=True)
 class Reason:
-    kind: str       # "crashes", "speed", "lanes", "no_sidewalk", "major_road"
+    kind: str       # "crashes", "speed", "lanes", "no_sidewalk", "major_road", "traffic"
     text: str
 
 
@@ -114,6 +115,10 @@ def segment_reason_items(row: Mapping, contribs: Mapping[str, float], risk_class
          "No sidewalk along most of this stretch"),
         ("major_road", row["highway"] in config.MAJOR_ROAD_CLASSES, "Major road with heavy traffic"),
     ]
+    if "adt" in row:  # traffic volume is only available when config.USE_AADT is on (Step 1.9)
+        measured = not row["aadt_imputed"] and row["adt"] >= config.AADT_REASON_MIN
+        cars = f"About {int(round(row['adt'], -2)):,} cars a day" if measured else ""
+        candidates.append(("traffic", measured, cars))
     scored = []
     for kind, condition, text in candidates:
         push = sum(contribs[f] for f in REASON_FEATURES[kind])

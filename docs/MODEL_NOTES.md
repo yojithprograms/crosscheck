@@ -32,3 +32,16 @@
 - Because the weights capture exposure, the **speed reason never shows**: faster streets don't push risk up in this model, so by the "positive push" rule they can't be explained by speed. The no-sidewalk reason showed on only 136 segments for the same reason (sidewalks push risk *up*).
 - With only the Appendix A reasons, 41.5% of high-risk streets had no reason at all. We added plain-words **context reasons** (road type, bus stops, crosswalks, sidewalks, length) for medium and high segments with no other reason, so every colored street has a "why". Only 18 of 15,940 colored segments fall back to the generic sentence.
 - The context reasons describe what the model uses (exposure and road type), not proof of danger. S19 should keep saying the score doesn't know how many people walk each street.
+
+## Step 1.9 — Traffic volume (2026-10-12)
+
+VDOT's traffic-count layer (ADT, average daily traffic) matched 44.9% of segments (primary 96%, secondary 91%, tertiary 82%, trunk 83%, residential 57%, service 4%); the rest get their class's median. Matching uses the segment midpoint and requires the count line to run the same direction, so side streets that touch an arterial don't inherit its count.
+
+| Full model | Without traffic volume | With traffic volume |
+|---|---|---|
+| ROC-AUC | 0.878 | 0.881 |
+| PR-AUC | 0.103 | 0.105 |
+| Top-10% capture | 0.641 | 0.643 |
+| Lift | 6.4x | 6.4x |
+
+By the rule in DESIGN (keep it only if capture improves) it stays on. Honestly, the gain is about two crashes out of 676, which is inside the noise. Traffic volume does become the strongest single weight (odds ratio 1.84 per standard deviation) and it adds the "About N cars a day" reason. The Step 1.7 table above was computed before this change; `models/metrics.json` now holds the numbers with traffic volume (roads-only 0.623, full 0.643).

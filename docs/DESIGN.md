@@ -456,8 +456,8 @@ TOP_SPOT_MIN_SPACING_M = 150
 
 ### Step 1.9 (optional) — Traffic volume (`s09_aadt.py`)
 - Open D5's layer list and fields (`ADT`, `AAWDT`); download the layer covering Fairfax.
-- Match to segments with `sjoin_nearest(max_distance=AADT_SNAP_M)`. No match → class median and `aadt_imputed = 1`. Feature `log_aadt = log(1 + ADT)`.
-- Retrain (Step 1.7); keep it only if top-10% capture improves.
+- Match to segments: a count line matches a segment if it passes within `AADT_SNAP_M` of the segment's **midpoint** and runs within `AADT_MAX_ANGLE_DEG` of the segment's direction (the closest one wins; ties take the larger count). The direction check stops a quiet side street that touches a busy road from inheriting its count. No match → the road class's median ADT and `aadt_imputed = 1`. Feature `log_aadt = log(1 + ADT)`.
+- Retrain (Step 1.7); keep it only if top-10% capture improves. `config.USE_AADT` records the decision, and `run_all` runs this step before Step 1.7 when it is on. Result (2026-10-12): top-10% capture 0.641 → 0.643, so it is on. Tiny, but it also enables the "cars a day" reason.
 
 ### Step 1.10 — Per-school walk graphs (`s10_school_graphs.py`)
 For each pilot school:
@@ -1380,7 +1380,7 @@ Put new ideas in `docs/IDEAS.md` first. Good next steps:
 | `sidewalk_cov < NO_SIDEWALK_COV` and `sidewalk_known` | "No sidewalk along most of this stretch" | "Is a sidewalk or trail planned here?" |
 | Class trunk or primary | "Major road with heavy traffic" | — |
 | Crossing/intersection hazard, `lanes ≥ WIDE_ROAD_LANES`, `signal_end == 0` | "No traffic signal where you cross" | "Could this crossing get a signal or beacon?" |
-| Traffic volume (Step 1.9) | "About {aadt:,} cars a day" | — |
+| Traffic volume (Step 1.9), measured (not estimated) and ≥ `AADT_REASON_MIN` | "About {aadt:,} cars a day" (rounded to the nearest 100) | — |
 
 Show at most three reasons. The crash-history sentence always shows (first) when `crashes_recent ≥ 1`, and the server adds the no-signal sentence to hazards (§7.7). Every other reason also needs a positive contribution (Step 1.8). The model's weights are exposure-flavored (see `MODEL_NOTES.md`), so in practice the speed reason never shows and the no-sidewalk reason is rare.
 

@@ -96,3 +96,10 @@ FALLBACK_MIN_CROSSINGS = 3        # "Many crosswalks nearby" needs at least this
 FALLBACK_LONG_SEGMENT_M = 200     # "A long stretch of road" needs at least this length
 FALLBACK_BUSY_SIDEWALK_COV = 0.5  # "Sidewalks likely mean more people on foot" needs at least this coverage
 MAX_CONTEXT_REASONS = 2           # fallback reasons per segment (they only appear when nothing else does)
+
+# Step 1.9 — traffic volume (optional)
+USE_AADT = True                   # Step 1.9: log_aadt nudged top-10% capture from 0.641 to 0.643, so it stays on
+VDOT_ADT_URL = "https://services.arcgis.com/p5v98VHDX9Atv3l7/ArcGIS/rest/services/VDOTTrafficVolume/FeatureServer/0"
+AADT_MAX_ANGLE_DEG = 30           # a traffic-count line only matches a segment running roughly the same direction
+AADT_DIRECTION_SAMPLE_M = 10      # how far either side of the nearest point to measure the count line's direction
+AADT_REASON_MIN = 10000           # "About N cars a day" reason needs at least this many (measured, not estimated)

@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 
 from crosscheck_pipeline import config
-from crosscheck_pipeline.s07_train import add_log_hist
+from crosscheck_pipeline.s07_train import add_log_hist, load_labeled
 from crosscheck_pipeline.utils.reasons import segment_reason_items
 
 PIPELINE_DIR = Path(__file__).resolve().parents[1]
@@ -66,8 +66,11 @@ def score_segments(segments: gpd.GeoDataFrame, bundle: dict) -> gpd.GeoDataFrame
     assert np.allclose(rebuilt, log_odds, atol=1e-6), "contributions don't add up to the model's score"
 
     reasons, kinds = [], []
-    rows = out[["crashes_recent", "crashes_recent_ka", "speed_mph", "speed_imputed", "lanes", "sidewalk_cov",
-                "sidewalk_known", "highway", "length_m", "marked_crossings", "bus_stops_200m"]].to_dict("records")
+    row_columns = ["crashes_recent", "crashes_recent_ka", "speed_mph", "speed_imputed", "lanes", "sidewalk_cov",
+                   "sidewalk_known", "highway", "length_m", "marked_crossings", "bus_stops_200m"]
+    if "log_aadt" in bundle["features"]:      # traffic volume is part of this model (Step 1.9)
+        row_columns += ["adt", "aadt_imputed"]
+    rows = out[row_columns].to_dict("records")
     for row, push, risk_class in zip(rows, pushes.to_dict("records"), out["risk_class"]):
         items = segment_reason_items(row, push, risk_class)
         reasons.append([item.text for item in items])
@@ -79,7 +82,7 @@ def score_segments(segments: gpd.GeoDataFrame, bundle: dict) -> gpd.GeoDataFrame
 
 
 def main() -> None:
-    segments = gpd.read_parquet(LABELED_PARQUET)
+    segments = load_labeled()
     bundle = joblib.load(MODEL_JOBLIB)
     scored = score_segments(segments, bundle)
     scored.to_parquet(SCORED_PARQUET)

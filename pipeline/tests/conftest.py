@@ -56,9 +56,14 @@ def synthetic_segments() -> gpd.GeoDataFrame:
         "hist_train": hist_train,
         "label_count": label_count,
         "hist_serve": hist_serve,
+        # Traffic volume (Step 1.9): busier classes have more cars; about half are measured, half estimated.
+        "adt": np.round(np.exp(np.select([highway == "primary", highway == "secondary", highway == "tertiary"],
+                                         [10.0, 9.2, 8.2], default=6.0) + rng.normal(0, 0.3, n))),
+        "aadt_imputed": rng.integers(0, 2, n),
     }
     for column in CLASS_COLUMNS:
         data[column] = (highway == column.removeprefix("class_")).astype(int)
     frame = gpd.GeoDataFrame(data, geometry=geometry, crs=config.CRS_METERS)
+    frame["log_aadt"] = np.log1p(frame["adt"])
     frame["y"] = (frame["label_count"] > 0).astype(int)
     return frame

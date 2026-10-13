@@ -30,6 +30,7 @@ from crosscheck_pipeline.s05_segments import FEATURE_COLUMNS
 
 PIPELINE_DIR = Path(__file__).resolve().parents[1]
 LABELED_PARQUET = PIPELINE_DIR / "data" / "interim" / "segments_labeled.parquet"
+AADT_PARQUET = PIPELINE_DIR / "data" / "interim" / "aadt.parquet"
 MODELS_DIR = PIPELINE_DIR / "models"
 METRICS_JSON = MODELS_DIR / "metrics.json"
 COEFFICIENTS_CSV = MODELS_DIR / "coefficients.csv"
@@ -41,7 +42,23 @@ TOP_FRACTION = 0.10
 # already have?" — computed from the EARLIER window (2017–2020) when training.
 ROAD_FEATURES = list(FEATURE_COLUMNS)
 ALL_FEATURES = [*ROAD_FEATURES, "log_hist"]
+AADT_FEATURES = ["log_aadt", "aadt_imputed"]        # optional (Step 1.9); used only when config.USE_AADT
 MODEL_NAMES = ("length_only", "history_only", "roads_only", "full")
+
+
+def feature_lists(use_aadt: bool | None = None) -> tuple[list[str], list[str]]:
+    """(road features, all features). Traffic volume joins both lists when `use_aadt` (default: config.USE_AADT)."""
+    use_aadt = config.USE_AADT if use_aadt is None else use_aadt
+    road = [*ROAD_FEATURES, *(AADT_FEATURES if use_aadt else [])]
+    return road, [*road, "log_hist"]
+
+
+def load_labeled(path: Path = LABELED_PARQUET) -> gpd.GeoDataFrame:
+    """segments_labeled.parquet, plus the traffic-volume columns when config.USE_AADT is on."""
+    segments = gpd.read_parquet(path)
+    if config.USE_AADT:
+        segments = segments.merge(pd.read_parquet(AADT_PARQUET), on="seg_id", how="left")
+    return segments
 
 
 def add_log_hist(segments: pd.DataFrame, history_column: str = "hist_train") -> pd.DataFrame:
@@ -120,21 +137,24 @@ def summarize(scores, frame: pd.DataFrame) -> dict[str, float]:
     }
 
 
-def evaluate_models(segments: gpd.GeoDataFrame) -> dict[str, dict[str, float]]:
+def evaluate_models(segments: gpd.GeoDataFrame, use_aadt: bool | None = None) -> dict[str, dict[str, float]]:
     """Compare the four models on the same spatial folds.
 
     1. length_only:  score = segment length (longer segments get more crashes just by being longer)
     2. history_only: score = crashes in 2017–2020
     3. roads_only:   logistic regression on road features, no crash history
     4. full:         logistic regression on road features + crash history
+
+    With `use_aadt` (default: config.USE_AADT) the two regressions also see log_aadt and aadt_imputed.
     """
+    road_features, all_features = feature_lists(use_aadt)
     frame = add_log_hist(segments)
     groups = spatial_groups(frame)
     scores = {
         "length_only": frame["length_m"].to_numpy(),
         "history_only": history_only_score(frame),
-        "roads_only": out_of_fold_scores(frame, ROAD_FEATURES, groups),
-        "full": out_of_fold_scores(frame, ALL_FEATURES, groups),
+        "roads_only": out_of_fold_scores(frame, road_features, groups),
+        "full": out_of_fold_scores(frame, all_features, groups),
     }
     return {name: summarize(scores[name], frame) for name in MODEL_NAMES}
 
@@ -152,7 +172,8 @@ def coefficients_table(model: Pipeline, features: list[str]) -> pd.DataFrame:
 
 
 def main() -> None:
-    segments = gpd.read_parquet(LABELED_PARQUET)
+    segments = load_labeled()
+    _, all_features = feature_lists()
     frame = add_log_hist(segments)
     n_positive = int(frame["y"].sum())
     print(f"{len(frame)} segments; {n_positive} with a crash in "
@@ -165,8 +186,8 @@ def main() -> None:
     print(table.round(3).to_string(), "\n")
 
     # Final model: fit on every segment (the cross-validated scores above are the honest test).
-    final = make_model().fit(frame[ALL_FEATURES], frame["y"])
-    coefficients = coefficients_table(final, ALL_FEATURES)
+    final = make_model().fit(frame[all_features], frame["y"])
+    coefficients = coefficients_table(final, all_features)
     print("Coefficients (per 1 standard deviation), largest effect first:")
     print(coefficients.round(3).to_string(index=False), "\n")
 
@@ -180,6 +201,7 @@ def main() -> None:
             "hist_window": list(config.TRAIN_HIST),
             "label_window": list(config.TRAIN_LABEL),
             "study_area_mode": config.STUDY_AREA_MODE,
+            "uses_traffic_volume": config.USE_AADT,
         },
         "cv": {"folds": config.CV_FOLDS, "grid_cell_m": config.GRID_CELL_M, "models": results},
         "full_top10_capture": results["full"]["top10_capture"],
@@ -187,7 +209,7 @@ def main() -> None:
     }
     METRICS_JSON.write_text(json.dumps(metrics, indent=2))
     coefficients.to_csv(COEFFICIENTS_CSV, index=False)
-    joblib.dump({"pipeline": final, "features": ALL_FEATURES, "model_version": metrics["model_version"]}, MODEL_JOBLIB)
+    joblib.dump({"pipeline": final, "features": all_features, "model_version": metrics["model_version"]}, MODEL_JOBLIB)
     print(f"Saved {METRICS_JSON.name}, {COEFFICIENTS_CSV.name}, {MODEL_JOBLIB.name} in {MODELS_DIR}")
 
     full, length, history = results["full"], results["length_only"], results["history_only"]

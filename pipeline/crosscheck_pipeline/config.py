@@ -103,3 +103,21 @@ VDOT_ADT_URL = "https://services.arcgis.com/p5v98VHDX9Atv3l7/ArcGIS/rest/service
 AADT_MAX_ANGLE_DEG = 30           # a traffic-count line only matches a segment running roughly the same direction
 AADT_DIRECTION_SAMPLE_M = 10      # how far either side of the nearest point to measure the count line's direction
 AADT_REASON_MIN = 10000           # "About N cars a day" reason needs at least this many (measured, not estimated)
+
+# Step 1.10 — per-school walk graphs
+WALK_GRAPH_SHRINK = 0.9           # if a school graph is too big, shrink its radius by this factor and retry
+MAX_GRAPH_FILE_MB = 5             # each exported graph should stay under this
+COORD_DECIMALS = 6                # lon/lat precision in exported files (about 0.1 m)
+WALK_GRAPH_BBOX_MARGIN_M = 300    # extra margin around the radius when downloading the walk network (a square)
+WALK_DOWNLOAD_RETRY_WAIT_S = 20   # pause between download retries (Overpass sometimes times out)
+OVERPASS_URLS = ("https://overpass-api.de/api", "https://overpass.private.coffee/api")  # tried in turn when a download fails
+
+# Step 1.11 — exports
+LAYER_SIMPLIFY_M = 3              # risk-layer lines are simplified by about this many meters
+COORD_GRID_DEG = 0.00001          # exported GeoJSON coordinates are snapped to about 1 m
+SEGMENTS_EXTRA_M = 200            # segments/{id}.json covers radius_m plus this
+MAP_SCALE_BAR_M = 500             # length of the scale bar on the report map
+MAX_RISK_LAYER_KB = 500           # each risk layer should stay under this
+ENTRANCE_CANDIDATE_RADIUS_M = 200  # walking nodes this close to the entrance point are candidates for the destination
+ENTRANCE_MAX_CANDIDATES = 8        # ...at most this many (the nearest ones)
+ENTRANCE_MIN_REACH_SHARE = 0.8     # a candidate must reach at least this share of what the best-connected candidate reaches

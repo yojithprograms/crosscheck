@@ -2,6 +2,7 @@ import { onlineManager, useQuery } from "@tanstack/react-query";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { apiFetch } from "@/api/client";
+import type { School } from "@/api/types";
 
 // Waking a sleeping free host can take up to a minute, so keep trying for about that long.
 const WAKE_RETRIES = 12;
@@ -47,4 +48,15 @@ export function useServerWake(): { state: WakeState; retry: () => void } {
   else if (slow || query.failureCount > 0) state = "waking";
 
   return { state, retry: () => void query.refetch() };
+}
+
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+/** The pilot schools (GET /schools). They rarely change, so the answer is reused for a day. */
+export function useSchools() {
+  return useQuery({
+    queryKey: ["schools"],
+    queryFn: () => apiFetch<School[]>("/schools"),
+    staleTime: ONE_DAY_MS,
+  });
 }

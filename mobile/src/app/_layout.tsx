@@ -6,6 +6,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { useServerWake } from "@/api/hooks";
 import { connectReactQueryToPhone, queryClient } from "@/api/queryClient";
+import { AskAdult } from "@/components/AskAdult";
 import { strings } from "@/copy/strings";
 import { useAppStore } from "@/state/store";
 import { colors } from "@/theme/colors";
@@ -21,11 +22,17 @@ function LaunchScreen() {
   );
 }
 
-/** Starts waking the server as soon as the app opens, then shows the screens. */
+/**
+ * Starts waking the server as soon as the app opens, then shows the screens. If the saved age answer is
+ * "Under 13", the app stops at the ask-an-adult message every time it opens.
+ */
 function AppStack() {
   useServerWake();
+  const ageGate = useAppStore((state) => state.ageGate);
+  if (ageGate === "under13") return <AskAdult />;
   return (
     <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="onboarding" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen
         name="settings"

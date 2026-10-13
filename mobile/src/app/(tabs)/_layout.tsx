@@ -1,10 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import type { ComponentProps } from "react";
 import type { ColorValue } from "react-native";
 
 import { AppHeader } from "@/components/AppHeader";
 import { strings } from "@/copy/strings";
+import { useAppStore } from "@/state/store";
 import { colors } from "@/theme/colors";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
@@ -17,6 +18,8 @@ function tabIcon(filled: IconName, outline: IconName) {
 
 /** The four tabs (APP_FLOW §1): Map, Route, Report, School. The active tab is teal. */
 export default function TabsLayout() {
+  const onboarded = useAppStore((state) => state.onboarded);
+  if (!onboarded) return <Redirect href="/onboarding/welcome" />; // first launch (or after Reset app)
   return (
     <Tabs
       screenOptions={{

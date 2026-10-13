@@ -31,18 +31,40 @@ def fetch_all_features(
     features: list[dict[str, Any]] = []
     offset = 0
     while True:
-        page_params = {
-            **params,
-            "orderByFields": "OBJECTID",
-            "resultOffset": offset,
-            "resultRecordCount": page_size,
-        }
-        page = _get_page(f"{layer_url}/query", page_params, retries, timeout_s, get, sleep)
+        page = fetch_page(
+            layer_url, params, offset, page_size=page_size, retries=retries,
+            timeout_s=timeout_s, get=get, sleep=sleep,
+        )
         features.extend(page)
         if len(page) < page_size:
             return features
         offset += page_size
         sleep(pause_s)
+
+
+def fetch_page(
+    layer_url: str,
+    params: dict[str, Any],
+    offset: int,
+    *,
+    page_size: int = config.ARCGIS_PAGE_SIZE,
+    retries: int = config.HTTP_RETRIES,
+    timeout_s: float = config.HTTP_TIMEOUT_S,
+    get: Callable[..., requests.Response] = requests.get,
+    sleep: Callable[[float], None] = time.sleep,
+) -> list[dict[str, Any]]:
+    """Download one page (`page_size` features starting at `offset`), with retries.
+
+    Use this directly when a caller wants to process or save each page as it arrives instead of
+    holding the whole layer in memory.
+    """
+    page_params = {
+        **params,
+        "orderByFields": "OBJECTID",
+        "resultOffset": offset,
+        "resultRecordCount": page_size,
+    }
+    return _get_page(f"{layer_url}/query", page_params, retries, timeout_s, get, sleep)
 
 
 def _get_page(

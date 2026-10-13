@@ -67,3 +67,12 @@ PILOT_AREA_RADIUS_M = 8000     # "pilot" mode: circle around each pilot school
 OSM_NETWORK_TYPE = "drive_service"
 OSM_POINT_TAGS = {"highway": ["traffic_signals", "crossing", "bus_stop"]}
 OSM_SIDEWALK_TAGS = {"footway": "sidewalk"}
+
+# Step 1.4 — sidewalks and coverage check
+COUNTY_SIDEWALKS_URL = "https://services1.arcgis.com/ioennV6PpG5Xodq0/ArcGIS/rest/services/Sidewalks_Centerline/FeatureServer/0"
+COUNTY_SIDEWALK_TYPES = ("SIDEWALK",)     # D3 TYPE values that are sidewalks
+COUNTY_CROSSWALK_TYPES = ("CONNECTOR",)   # D3 TYPE values that are crosswalk connectors (crossings)
+COVERAGE_CELL_M = 1000                    # coverage grid cell size
+GAP_MIN_ROAD_M = 2000                     # a cell needs at least this much road to be judged
+GAP_MAX_COUNTY_RATIO = 0.05               # county sidewalk length / road length below this = "gap"
+GAP_ROAD_EXCLUDE = ("motorway", "motorway_link", "service")  # roads left out of the coverage denominator

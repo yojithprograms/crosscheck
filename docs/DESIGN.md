@@ -180,7 +180,7 @@ crosscheck/
 ├── CLAUDE.md                  # instructions Claude Code reads first
 ├── AI_USAGE.md                # running log of AI help (for your CAC disclosure)
 ├── README.md
-├── .gitignore                 # .env, pipeline/data/, node_modules/, *.db, .venv/, __pycache__/
+├── .gitignore                 # .env, pipeline/data/* (except schools_pilot.csv), node_modules/, *.db, .venv/, __pycache__/
 ├── docs/
 │   ├── DESIGN.md              # this file
 │   ├── APP_FLOW.md            # every screen
@@ -203,7 +203,7 @@ crosscheck/
 │   │   ├── s11_exports.py     # Step 1.11
 │   │   ├── run_all.py         # runs steps in order; --from s05 to resume
 │   │   └── utils/             # arcgis.py (paged downloads), osm_parse.py, geo.py, reasons.py
-│   ├── data/                  # gitignored: raw/ and interim/
+│   ├── data/                  # schools_pilot.csv is committed; raw/ and interim/ are gitignored
 │   ├── models/                # risk_model.joblib, metrics.json, coefficients.csv
 │   └── tests/
 ├── server/                    # B. API (Python)
@@ -232,7 +232,7 @@ crosscheck/
 | D5 (optional) | Traffic volume (ADT, AAWDT) | VDOT | `https://services.arcgis.com/p5v98VHDX9Atv3l7/ArcGIS/rest/services/VDOTTrafficVolume/FeatureServer` | Traffic volume on interstate, arterial, and primary routes |
 
 **Facts about D1 (checked October 2026):**
-- Coverage runs from **January 1, 2017 through May 31, 2026**. The most recent months are preliminary and can change. Crashes after May 2026 aren't in it yet.
+- Coverage runs from **January 1, 2017 through July 31, 2026** (checked October 12, 2026). The most recent months are preliminary and can change. Crashes after July 2026 aren't in it yet.
 - The server returns at most **2,000 records per request** and supports `f=geojson`, so you download in pages.
 - Yes/no flags are strings: `'1'` = yes, `'0'` = no, `'-'` = unknown.
 - VDOT says it assumes no responsibility for the data's accuracy or completeness. Mention this in your methods.
@@ -1148,7 +1148,7 @@ For judges: share the GitHub repo and your video. Optional: an Android build wit
 3. OpenStreetMap speed limits and lane counts are incomplete; estimated values are marked.
 4. Sidewalk data can be outdated or missing in places (Step 1.4 checks this).
 5. Crash locations are approximate (matched within 30 m).
-6. Crash data runs through May 2026, and recent months are preliminary.
+6. Crash data runs through July 2026, and recent months are preliminary.
 7. Bike and scooter routes use the walking network (minus stairs).
 8. Scores rank streets against each other; they aren't the chance of being hit. "Lower-risk" doesn't mean safe.
 9. AI sorting can be wrong, so students confirm every report.
@@ -1181,7 +1181,7 @@ GitHub account and a new repo `crosscheck`; Python 3.12; Node.js LTS; VS Code; C
 *Done when:* `python --version`, `node --version`, and `claude` all run, and Expo Go is installed.
 
 **Step 0.2 · Repo skeleton** — *Setup*
-Create the folders in §4; `.gitignore` (`.env`, `pipeline/data/`, `node_modules/`, `*.db`, `.venv/`, `__pycache__/`); a README stub; `docs/DESIGN.md`, `docs/APP_FLOW.md`, `CLAUDE.md`, `AI_USAGE.md`; empty `docs/MODEL_NOTES.md` and `docs/IDEAS.md`.
+Create the folders in §4; `.gitignore` (`.env`, `pipeline/data/*` except `schools_pilot.csv`, `node_modules/`, `*.db`, `.venv/`, `__pycache__/`); a README stub; `docs/DESIGN.md`, `docs/APP_FLOW.md`, `CLAUDE.md`, `AI_USAGE.md`; empty `docs/MODEL_NOTES.md` and `docs/IDEAS.md`.
 *Done when:* the first commit is pushed to GitHub.
 
 **Step 0.3 · Python environments** — *Backend*

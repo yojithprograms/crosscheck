@@ -1,5 +1,6 @@
 .env
-pipeline/data/
+pipeline/data/*
+!pipeline/data/schools_pilot.csv
 node_modules/
 *.db
 .venv/

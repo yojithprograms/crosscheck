@@ -373,7 +373,7 @@ TOP_SPOT_MIN_SPACING_M = 150
 - **Road network for the model:** `ox.graph.graph_from_polygon(poly, network_type="drive_service", simplify=True, retain_all=True)` → `ox.io.save_graphml(G, "data/interim/drive.graphml")`. `drive_service` includes driveways and shopping-center aisles, where some crashes happen.
 - **Points:** `ox.features.features_from_polygon(poly, tags={"highway": ["traffic_signals", "crossing", "bus_stop"]})` → keep Point geometries → `data/interim/osm_points.gpkg` (keep the `highway` and `crossing` columns).
 - **OSM sidewalks:** `ox.features.features_from_polygon(poly, tags={"footway": "sidewalk"})` → keep lines → `data/interim/osm_sidewalks.gpkg`.
-- **Gotchas:** a countywide download can take 10+ minutes. OSMnx splits big queries and caches results, so reruns are fast. If it fails or runs out of memory, build everything for a smaller area first (an 8 km circle around your pilot schools), then scale up.
+- **Gotchas:** OSMnx pins every Overpass request to the one IPv4 address `gethostbyname` returns. If that server is down (it was on 2026-10-12) every request times out. `configure_osmnx()` turns the pinning off (`skip_osmnx_dns_pinning()`), so Python tries each address. A countywide download can take 10+ minutes. OSMnx splits big queries and caches results, so reruns are fast. If it fails or runs out of memory, build everything for a smaller area first (an 8 km circle around your pilot schools), then scale up.
 - **Done when:** the graph loads, node and edge counts print, and a plot looks like Fairfax.
 
 ### Step 1.4 — Sidewalks and coverage check (`s04_sidewalks.py`)
@@ -461,12 +461,12 @@ TOP_SPOT_MIN_SPACING_M = 150
 
 ### Step 1.10 — Per-school walk graphs (`s10_school_graphs.py`)
 For each pilot school:
-1. `G = ox.graph.graph_from_point((lat, lon), dist=radius_m, dist_type="network", network_type="walk", simplify=True)`. In OSMnx 2.x the walk network skips streets whose sidewalks are mapped as separate paths, so routes use those sidewalks (good).
+1. Download a square: `G = ox.graph.graph_from_point((lat, lon), dist=radius_m + WALK_GRAPH_BBOX_MARGIN_M, dist_type="bbox", network_type="walk", simplify=True)` (OSMnx keeps the largest connected piece). Later in this step the graph is clipped to what can be walked within `radius_m` of the entrance node. (The first version used `dist_type="network"` from the entrance point, but an entrance point that landed on a dead-end campus path left some schools with tiny graphs.) In OSMnx 2.x the walk network skips streets whose sidewalks are mapped as separate paths, so routes use those sidewalks (good).
 2. Make it undirected with `ox.convert.to_undirected(G)` (walking is two-way), then keep only the shortest edge between each pair of nodes (a short loop over `G.edges(data=True)`).
 3. Edge attributes: `length`, `coords` (list of `[lon, lat]` from the geometry, or the two node points), `name`, `highway`, `is_crossing` (`footway == "crossing"` or `cycleway == "crossing"`, or a `crossing` tag on a footway/path), `is_steps` (`highway == "steps"`). Tags can be lists after simplification; a list matches if any item matches.
 4. **Link each edge to a road:** edge midpoint (`shapely.line_interpolate_point(geom, 0.5, normalized=True)`) → nearest road segment within `WALK_TO_ROAD_MAX_M` (`sjoin_nearest`, in meters). Copy `seg_id`, `risk_pct`, `risk_class`, and the road's name as `road_name`. No match (trail, park path) → `seg_id = null`, `risk_pct = 0`, `risk_class = "low"`.
 5. **Node risk:** for walk nodes that are also road nodes (same OSM node id), `node_risk` = highest `risk_pct` among road segments touching that node, and `major_seg` = that segment's id. Other nodes → `0` / `null`.
-6. **Entrance node:** the node nearest the entrance point.
+6. **Entrance node:** among the nodes within `ENTRANCE_CANDIDATE_RADIUS_M` of the entrance point (at most `ENTRANCE_MAX_CANDIDATES`), the nearest one that reaches at least `ENTRANCE_MIN_REACH_SHARE` of what the best-connected candidate reaches within `radius_m` (so a dead-end path can't strand the graph). With no such candidate, the nearest node. Then keep only the nodes and edges reachable from it within `radius_m` of walking.
 7. **Size check:** keep each graph under `MAX_GRAPH_EDGES` undirected edges (shrink that school's `radius_m` if needed).
 8. **Export** `server/data/graphs/{school_id}.json.gz`. Store each **undirected** edge once with `u < v`, and orient `coords` from `u` to `v` (reverse the list if its first point is nearer `v`); the server adds both directions when it loads the file:
    ```json
@@ -518,6 +518,10 @@ server/app/
 ├── geo.py               # haversine, flat-earth meters, nearest node, nearest edge
 ├── routing.py           # ★ costs, fastest + lower-risk paths, route building
 ├── hazards.py           # ★ find, group, title, and explain hazards
+├── hazard_types.py      # hazard types, labels, and who can fix each (Appendix B)
+├── names.py             # display_road_name (copy of the pipeline's)
+├── errors.py            # ApiError: the app-facing error shape
+├── deps.py              # FastAPI dependencies (get_store)
 ├── db.py                # engine + session dependency
 ├── models.py            # SQLModel tables: Report, Photo
 ├── schemas.py           # Pydantic request/response models (the API contract)
@@ -702,7 +706,7 @@ The fastest route uses `length` only.
 4. `fast = nx.shortest_path(Gv, o, entrance, weight="length")`; `low = nx.shortest_path(Gv, o, entrance, weight="cost_low")`. `NetworkXNoPath` → `NO_ROUTE`.
 5. Build each `Route`: join edge coordinates in path order (for v → u edges, reverse the shared coordinate list; skip the repeated joint point); `distance_m = Σ length`; `duration_min = ceil(distance / speed / 60)`; `mean_risk_pct` = length-weighted mean; hazards (§7.7).
 6. `same_route` = identical node lists.
-7. `notes`: same → "Your fastest route is also the lower-risk route." Different: let `Δ` = extra minutes and `k` = fastest `high_count` − lower-risk `high_count`. If `k > 0` → "The lower-risk route adds {Δ} min and avoids {k} high-risk spot(s)."; otherwise → "The lower-risk route adds {Δ} min and spends less of the trip on risky streets." (When `Δ` is 0, say "less than a minute".) If the lower-risk distance > `LONG_DETOUR_RATIO` × fastest → add "It's a lot longer, so talk with your family about which makes sense."
+7. `notes`: same → "Your fastest route is also the lower-risk route." Different: let `Δ` = extra minutes and `k` = fastest `high_count` − lower-risk `high_count`. If `k > 0` → "The lower-risk route adds {Δ} min and avoids {k} high-risk spot(s)."; otherwise, whichever is true of this pair of routes: lower `mean_risk_pct` → "…adds {Δ} min and spends less of the trip on risky streets."; fewer student-reported spots → "…adds {Δ} min and avoids {r} spot(s) students reported."; else → "…adds {Δ} min and has about the same level of risk." (When `Δ` is 0, say "less than a minute".) A detour can show more high-risk *spots* than the fastest route (for example, two intersection hazards instead of one crossing), so the note must not claim fewer unless it is true. If the lower-risk distance > `LONG_DETOUR_RATIO` × fastest → add "It's a lot longer, so talk with your family about which makes sense."
 8. Never store or log the origin.
 
 **Tests** (`tests/test_routing.py`, on a tiny 3×3 grid fixture): (1) the lower-risk route avoids a high-risk middle edge when a detour exists; (2) `same_route` is true when all risk is 0; (3) bike mode skips steps; (4) `OUTSIDE_AREA` and `NO_NEARBY_PATH`; (5) adding a report penalty changes the chosen path.

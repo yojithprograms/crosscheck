@@ -58,11 +58,13 @@ def build_files(
     edge_overrides: dict[tuple[int, int], dict[str, Any]] | None = None,
     node_overrides: dict[int, dict[str, Any]] | None = None,
     segment_overrides: dict[str, dict[str, Any]] | None = None,
+    drop_edges: list[tuple[int, int]] | None = None,
 ) -> dict[str, Any]:
     """The contents of every exported file, as Python objects, for the mini school."""
     edge_overrides = edge_overrides or {}
     node_overrides = node_overrides or {}
     segment_overrides = segment_overrides or {}
+    drop_edges = drop_edges or []
 
     nodes = []
     for node in range(1, 10):
@@ -72,6 +74,8 @@ def build_files(
 
     edges, segments, risky_features = [], {}, []
     for u, v in grid_edges():
+        if (u, v) in drop_edges:
+            continue
         seg_id = f"s{u}-{v}"
         edge = {
             "u": u, "v": v, "length": _length_m(u, v),

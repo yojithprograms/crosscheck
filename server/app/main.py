@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.config import Settings, get_settings
-from app.routers import meta
+from app.routers import meta, routes, schools
 from app.store import DataStore
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s:     %(name)s: %(message)s")
@@ -30,6 +30,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.state.store = None
     app.include_router(meta.router)
+    app.include_router(schools.router)
+    app.include_router(routes.router)
     return app
 
 

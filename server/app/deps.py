@@ -1,14 +1,14 @@
-"""Shared FastAPI dependencies and the app-facing error shape (DESIGN §7.5)."""
-from fastapi import HTTPException, Request
+"""Shared FastAPI dependencies."""
+from __future__ import annotations
 
-from app.store import DataStore
+from typing import TYPE_CHECKING
 
+from fastapi import Request
 
-class ApiError(HTTPException):
-    """Errors the app understands: {"detail": {"code": "OUTSIDE_AREA", "message": "..."}}."""
+from app.errors import ApiError
 
-    def __init__(self, status_code: int, code: str, message: str) -> None:
-        super().__init__(status_code=status_code, detail={"code": code, "message": message})
+if TYPE_CHECKING:
+    from app.store import DataStore
 
 
 def get_store(request: Request) -> DataStore:

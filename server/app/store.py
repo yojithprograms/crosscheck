@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from app.graph_io import SchoolGraph, load_graph
+from app.routing import compute_costs
 
 logger = logging.getLogger("crosscheck.store")
 
@@ -46,6 +47,7 @@ class DataStore:
         for info in _read_json(schools_file):
             sid = info["id"]
             graph = load_graph(data_dir / "graphs" / f"{sid}.json.gz")
+            compute_costs(graph.graph)
             schools[sid] = SchoolData(
                 info=info,
                 graph=graph,

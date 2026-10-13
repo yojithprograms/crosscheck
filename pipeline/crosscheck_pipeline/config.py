@@ -48,3 +48,15 @@ SCHOOL_LEVEL_TYPES = {"ES": "Elementary School", "MS": "Middle School", "HS": "H
 SCHOOL_REF_MAX_DIST_M = 400   # entrance farther than this from the FCPS layer's point → "check this one"
 HTTP_TIMEOUT_S = 60
 HTTP_RETRIES = 3
+
+# Step 1.2 — crashes (D1)
+VDOT_CRASH_URL = "https://services.arcgis.com/p5v98VHDX9Atv3l7/ArcGIS/rest/services/Full_Crash/FeatureServer/0"
+CRASH_WHERE = "(PED_NONPED = '1' OR BIKE_NONBIKE = '1')"
+CRASH_OUT_FIELDS = (
+    "DOCUMENT_NBR,CRASH_YEAR,CRASH_DT,CRASH_SEVERITY,PED_NONPED,BIKE_NONBIKE,"
+    "PEDESTRIANS_KILLED,PEDESTRIANS_INJURED,LIGHT_CONDITION,INTERSECTION_TYPE,"
+    "TRAFFIC_CONTROL_TYPE,SCHOOL_ZONE,ROUTE_OR_STREET_NM,PHYSICAL_JURIS,LAT,LON"
+)
+ARCGIS_PAGE_SIZE = 2000       # the server's maxRecordCount
+ARCGIS_PAUSE_S = 0.5          # wait between page requests
+KA_SEVERITIES = ("K", "A")    # fatal, severe

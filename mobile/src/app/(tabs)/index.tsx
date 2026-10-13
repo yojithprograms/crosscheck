@@ -1,15 +1,19 @@
 import { useRouter } from "expo-router";
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import MapView from "react-native-maps";
 
 import { useCrashes, useRiskLayer, useSchools } from "@/api/hooks";
+import type { CrashFeature, RiskFeature } from "@/api/types";
 import { Banner } from "@/components/Banner";
+import { BottomCard } from "@/components/BottomCard";
+import { CrashCard } from "@/components/CrashCard";
 import { Chip } from "@/components/Chip";
 import { EmptyState } from "@/components/EmptyState";
 import { Legend } from "@/components/Legend";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { SecondaryButton } from "@/components/SecondaryButton";
+import { StreetCard } from "@/components/StreetCard";
 import { strings } from "@/copy/strings";
 import { CrashLayer } from "@/map/CrashLayer";
 import { RiskLayer } from "@/map/RiskLayer";
@@ -21,6 +25,9 @@ import { type } from "@/theme/type";
 import { regionForRadius } from "@/utils/geo";
 
 const LAYER_KEYS: (keyof Layers)[] = ["risk", "crashes", "reports"];
+const MAP_TAP_IGNORE_MS = 350; // a street or dot tap can also reach the map; don't let it close its own card
+
+type Selected = { kind: "street"; feature: RiskFeature } | { kind: "crash"; feature: CrashFeature } | null;
 
 /** S4 · the home tab: your school's risk map. */
 export default function MapTab() {
@@ -33,6 +40,21 @@ export default function MapTab() {
   const school = schools.data?.find((s) => s.id === schoolId);
   const risk = useRiskLayer(school?.id ?? null);
   const crashes = useCrashes(school?.id ?? null);
+
+  const [selected, setSelected] = useState<Selected>(null);
+  const selectedAt = useRef(0);
+  const select = (next: Selected) => {
+    selectedAt.current = Date.now();
+    setSelected(next);
+  };
+  const closeCard = () => setSelected(null);
+  // Keep showing the last card's content while it slides away.
+  const lastShown = useRef<Selected>(null);
+  if (selected) lastShown.current = selected;
+  const shown = selected ?? lastShown.current;
+  const onMapPress = () => {
+    if (Date.now() - selectedAt.current > MAP_TAP_IGNORE_MS) closeCard();
+  };
 
   const region = useMemo(() => (school ? regionForRadius(school.lat, school.lon, school.radius_m) : undefined), [school]);
 
@@ -82,9 +104,12 @@ export default function MapTab() {
         rotateEnabled={false}
         pitchEnabled={false}
         toolbarEnabled={false}
+        onPress={onMapPress}
       >
-        {layers.risk ? <RiskLayer layer={risk.data} onSelect={() => undefined} /> : null}
-        {layers.crashes ? <CrashLayer layer={crashes.data} onSelect={() => undefined} /> : null}
+        {layers.risk ? <RiskLayer layer={risk.data} onSelect={(feature) => select({ kind: "street", feature })} /> : null}
+        {layers.crashes ? (
+          <CrashLayer layer={crashes.data} onSelect={(feature) => select({ kind: "crash", feature })} />
+        ) : null}
         <SchoolMarker school={school} />
       </MapView>
 
@@ -107,6 +132,11 @@ export default function MapTab() {
         <PrimaryButton title={strings.map.planRoute} onPress={() => router.navigate("/route")} />
         <SecondaryButton title={strings.map.reportCloseCall} onPress={() => router.navigate("/report")} />
       </View>
+
+      <BottomCard visible={selected !== null} onClose={closeCard}>
+        {shown?.kind === "street" ? <StreetCard schoolId={school.id} segId={shown.feature.properties.seg_id} /> : null}
+        {shown?.kind === "crash" ? <CrashCard crash={shown.feature} /> : null}
+      </BottomCard>
     </View>
   );
 }

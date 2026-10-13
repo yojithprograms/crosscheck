@@ -2,7 +2,7 @@ import { onlineManager, useQuery } from "@tanstack/react-query";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { apiFetch } from "@/api/client";
-import type { CrashFeature, FeatureCollection, Meta, RiskFeature, School } from "@/api/types";
+import type { CrashFeature, FeatureCollection, Meta, RiskFeature, School, SegmentDetail } from "@/api/types";
 
 // Waking a sleeping free host can take up to a minute, so keep trying for about that long.
 const WAKE_RETRIES = 12;
@@ -87,5 +87,17 @@ export function useMeta() {
     queryKey: ["meta"],
     queryFn: () => apiFetch<Meta>("/meta"),
     staleTime: ONE_DAY_MS,
+  });
+}
+
+const FIVE_MINUTES_MS = 5 * 60 * 1000;
+
+/** Details for one street (GET /segments/{school}/{seg}): risk, reasons, facts. */
+export function useSegment(schoolId: string | null, segId: string | null) {
+  return useQuery({
+    queryKey: ["segment", schoolId, segId],
+    queryFn: () => apiFetch<SegmentDetail>(`/segments/${schoolId}/${segId}`),
+    enabled: !!schoolId && !!segId,
+    staleTime: FIVE_MINUTES_MS,
   });
 }

@@ -33,3 +33,16 @@ export function approx(value: string | number, estimated: boolean): string {
 export function crashSeverityText(code: string): string {
   return strings.crash.severity[code as keyof typeof strings.crash.severity] ?? strings.crash.severity.O;
 }
+
+// How much sidewalk counts as "Yes" and "Partly" (the pipeline treats under 0.25 as "no sidewalk").
+const SIDEWALK_YES_AT = 0.75;
+const SIDEWALK_PARTLY_AT = 0.25;
+
+/** "Yes", "Partly", "No", or "Unknown" (where the county sidewalk data doesn't cover the area). */
+export function sidewalkText(coverage: number, known: boolean): string {
+  const values = strings.cards.sidewalkValues;
+  if (!known) return values.unknown;
+  if (coverage >= SIDEWALK_YES_AT) return values.yes;
+  if (coverage >= SIDEWALK_PARTLY_AT) return values.partly;
+  return values.no;
+}

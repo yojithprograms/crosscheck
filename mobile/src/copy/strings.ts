@@ -91,6 +91,28 @@ export const strings = {
       `${mode === "ped" ? "Crash involving someone walking" : "Crash involving someone biking"}, ${year}`,
   },
 
+  // S5 · Detail cards
+  cards: {
+    close: "Close",
+    why: "Why",
+    noReasons: "This street ranks above most nearby streets overall.",
+    preliminary: (count: number) => `Includes ${count} from 2026 (preliminary data).`,
+    speedLimit: "Speed limit",
+    lanes: "Lanes",
+    sidewalk: "Sidewalk",
+    sidewalkValues: { yes: "Yes", partly: "Partly", no: "No", unknown: "Unknown" },
+    mph: (value: string) => `${value} mph`,
+    reportsHere: (count: number) => `Student reports here: ${count} in the last 6 months.`,
+    howCalculated: "How is this calculated?",
+    loading: "Loading…",
+    loadError: "Couldn't load this street.",
+    retry: "Retry",
+    crashTitle: (mode: "ped" | "bike") =>
+      mode === "ped" ? "Crash involving someone walking" : "Crash involving someone biking",
+    crashSource: "Source: VDOT crash data.",
+    crashPreliminary: "Preliminary — may change.",
+  },
+
   // S19 · How risk scores work
   howItWorks: {
     title: "How risk scores work",

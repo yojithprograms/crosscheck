@@ -129,9 +129,34 @@ export const strings = {
     changeStart: "Change start",
     smallPrint: "Lower-risk isn't risk-free. Follow crossing guards and signals.",
     startMarker: "Your start point",
+  },
+
+  // S8 · Route errors (APP_FLOW §8). Each one says what went wrong and offers one next step.
+  errors: {
+    routesFailed: "We couldn't get your routes. Check your connection and try again.",
+    noNearbyPath: "We couldn't find a sidewalk or street near there. Try moving the pin.",
+    noRoute: "We couldn't find a route from there. Try a different start.",
+    unknownSchool: "This school's map isn't ready yet.",
     retry: "Retry",
-    failed: "We couldn't get your routes. Check your connection and try again.",
-    noRoutes: "We couldn't find routes from there. Try a different start.",
+    dropPin: "Drop a pin",
+    movePin: "Move the pin",
+  },
+
+  // S8 and S9 · Spots to watch on a route
+  hazards: {
+    listTitle: {
+      fastest: "Spots on the fastest route",
+      lower_risk: "Spots on the lower-risk route",
+      same: "Spots on your route",
+    },
+    none: "No high-risk spots or student reports on this route.",
+    rowLabel: (n: number, title: string, risk: string) => `${n}. ${title}. ${risk}.`,
+    markerLabel: (n: number, title: string) => `Spot ${n}: ${title}`,
+    cardTitle: (n: number, title: string) => `${n} · ${title}`,
+    tipsTitle: "Tips for this spot",
+    tipCrossing: "Cross at a signal or crosswalk if you can. Wait for the walk sign, and watch for turning cars.",
+    tipAlong: "Stay on the sidewalk or path, as far from traffic as you can.",
+    report: "Report a problem here",
   },
 
   // S5 · Detail cards

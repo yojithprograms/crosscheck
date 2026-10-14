@@ -9,6 +9,7 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { RouteResults } from "@/components/RouteResults";
 import { RouteStart } from "@/components/RouteStart";
 import { strings } from "@/copy/strings";
+import { useReportDraft } from "@/state/reportDraft";
 import { useAppStore, type LatLon, type TravelMode } from "@/state/store";
 import { colors } from "@/theme/colors";
 
@@ -16,7 +17,7 @@ import { colors } from "@/theme/colors";
 // someone's home is never saved or logged unless the student taps "Save as my route".
 type Step =
   | { name: "start" }
-  | { name: "pin"; notice?: string }
+  | { name: "pin"; notice?: string; start?: LatLon }
   | { name: "results"; origin: LatLon; mode: TravelMode };
 
 /** The Route tab: S6 start, S7 pin picker, then S8 route results. */
@@ -79,6 +80,7 @@ export default function RouteTab() {
     return (
       <PinPicker
         school={school}
+        start={step.start}
         notice={step.notice}
         onBack={() => setStep({ name: "start" })}
         onConfirm={(origin) => setStep({ name: "results", origin, mode: useAppStore.getState().travelMode })}
@@ -93,6 +95,14 @@ export default function RouteTab() {
         origin={step.origin}
         mode={step.mode}
         onChangeStart={() => setStep({ name: "start" })}
+        onMovePin={() => setStep({ name: "pin", start: step.origin, notice: strings.errors.noNearbyPath })}
+        onDropPin={() => setStep({ name: "pin" })}
+        onChangeSchool={() => router.push({ pathname: "/onboarding/school", params: { from: "settings" } })}
+        onReportHere={(spot) => {
+          // The report flow (Phase 5) starts its pin at this spot.
+          useReportDraft.getState().setLocation({ lat: spot.lat, lon: spot.lon });
+          router.navigate("/report");
+        }}
       />
     );
   }

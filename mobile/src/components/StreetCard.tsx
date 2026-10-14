@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useSegment } from "@/api/hooks";
+import { ReasonList } from "@/components/ReasonList";
 import { RiskBadge } from "@/components/RiskBadge";
 import { strings } from "@/copy/strings";
 import { colors } from "@/theme/colors";
@@ -42,7 +43,6 @@ export function StreetCard({ schoolId, segId }: { schoolId: string; segId: strin
   }
 
   const s = segment.data;
-  const reasons = s.reasons.length > 0 ? s.reasons : [strings.cards.noReasons];
   return (
     <View style={styles.wrap}>
       <Text style={styles.title} accessibilityRole="header">
@@ -51,13 +51,7 @@ export function StreetCard({ schoolId, segId }: { schoolId: string; segId: strin
       <RiskBadge riskClass={s.risk_class} />
       <Text style={styles.body}>{percentileText(s.risk_pct)}</Text>
 
-      <Text style={styles.section}>{strings.cards.why}</Text>
-      {reasons.map((reason) => (
-        <View key={reason} style={styles.reasonRow}>
-          <Text style={styles.bullet}>•</Text>
-          <Text style={[styles.body, styles.reasonText]}>{reason}</Text>
-        </View>
-      ))}
+      <ReasonList reasons={s.reasons} />
       {s.crashes_prelim > 0 ? <Text style={styles.caption}>{strings.cards.preliminary(s.crashes_prelim)}</Text> : null}
 
       <View style={styles.facts}>
@@ -82,12 +76,8 @@ const styles = StyleSheet.create({
   wrap: { gap: spacing.sm },
   center: { alignItems: "center", gap: spacing.sm, paddingVertical: spacing.xl },
   title: { ...type.sectionTitle, color: colors.text, paddingRight: shape.minTouchTarget },
-  section: { ...type.headline, color: colors.text, marginTop: spacing.sm },
   body: { ...type.body, color: colors.text },
   caption: { ...type.caption, color: colors.textMuted },
-  reasonRow: { flexDirection: "row", gap: spacing.sm },
-  bullet: { ...type.body, color: colors.text },
-  reasonText: { flex: 1 },
   facts: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.sm },
   fact: {
     flex: 1,

@@ -15,22 +15,33 @@ import { colors } from "@/theme/colors";
 import { shape, spacing } from "@/theme/spacing";
 import { insideCircle, pointToLatLng, regionForRadius } from "@/utils/geo";
 
+const START_ZOOM_RADIUS_M = 550; // reopened at a pin: zoom to about 1.2 km across so the nearby streets are easy to see
+
 type Props = {
   school: School;
-  notice?: string; // shown first when the student arrives here from a failed "Use my location"
+  start?: LatLon; // where to put the pin first (for example, where it was when no street was nearby). Default: the school.
+  notice?: string; // shown first when the student arrives here from a failed "Use my location" or route
   onBack: () => void;
   onConfirm: (point: LatLon) => void;
 };
 
 /** S7 · a full-screen map with a fixed pin in the center. Start here only works inside the school's circle. */
-export function PinPicker({ school, notice, onBack, onConfirm }: Props) {
+export function PinPicker({ school, start, notice, onBack, onConfirm }: Props) {
   const schoolCenter = useMemo(() => ({ latitude: school.lat, longitude: school.lon }), [school]);
-  const region = useMemo(() => regionForRadius(school.lat, school.lon, school.radius_m), [school]);
+  const region = useMemo(
+    () =>
+      start
+        ? regionForRadius(start.lat, start.lon, START_ZOOM_RADIUS_M)
+        : regionForRadius(school.lat, school.lon, school.radius_m),
+    [school, start],
+  );
 
   // The map's center is the pin. Keep it in a ref (it changes on every frame while dragging) and only
   // put "inside the circle or not" into state, so the screen re-renders just when that answer flips.
-  const center = useRef<LatLon>({ lat: school.lat, lon: school.lon });
-  const [inside, setInside] = useState(true);
+  const center = useRef<LatLon>(start ?? { lat: school.lat, lon: school.lon });
+  const [inside, setInside] = useState(() =>
+    start ? insideCircle(pointToLatLng(start), schoolCenter, school.radius_m) : true,
+  );
   const [moved, setMoved] = useState(false);
 
   const isInside = (point: LatLon) => insideCircle(pointToLatLng(point), schoolCenter, school.radius_m);

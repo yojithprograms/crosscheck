@@ -937,7 +937,7 @@ mobile/
     ├── map/        RiskLayer, CrashLayer, ReportLayer, RouteLayer, StartMarker, HazardMarkers, CoverageCircle, CenterPin
     ├── components/ PrimaryButton, SecondaryButton, TextButton, Chip, ChipGroup, Card, BottomCard,
     │               RiskBadge, Legend, RouteStart (S6), PinPicker (S7), RouteResults (S8), RouteCard, HazardRow,
-    │               StepHeader, Banner, EmptyState, LoadingOverlay, SafetyNote
+    │               HazardCard (S9), NumberBadge, ReasonList, StepHeader, Banner, EmptyState, LoadingOverlay, SafetyNote
     ├── theme/      colors.ts, type.ts, spacing.ts
     ├── copy/       strings.ts (all user-facing text)
     └── utils/      geo.ts, format.ts, location.ts (one-time GPS read), image.ts, errors.ts
@@ -947,7 +947,7 @@ mobile/
 - The root layout is a `Stack` holding `onboarding`, `(tabs)`, and three modals (`settings`, `how-it-works`, `school-report`, each with `presentation: "modal"`). It waits for the saved store to load. If `ageGate` is `"under13"` → the S2 "ask an adult" message; if `onboarded` is false → `/onboarding/welcome`; otherwise the tabs.
 - Tabs: **Map** (home), **Route**, **Report**, **School**. A gear icon in the header opens Settings as a modal.
 - Route tab (`route.tsx`): S6 → S7 → S8 are one screen with in-memory step state (`start`, `pin`, `results`). A start point is never persisted or logged unless the student taps "Save as my route." The app checks "inside the circle" against `radius_m` exactly; the server allows `AREA_SLACK` (1.1×), so the app is the stricter of the two. A GPS fix outside the circle, a denied permission, or a timeout (15 s) all send the student to the pin picker with a message.
-- S8 layout: the map and a scrolling panel split the screen evenly, so the map never changes size when the routes arrive (that would throw off zoom-to-fit). The two route cards sit side by side unless the screen is narrower than 360 dp or the phone's text size is above 1.3×, then they stack. When `same_route` is true there is one card ("Fastest and lower-risk") and the message "Good news: your fastest route is also the lower-risk route" replaces the server's note. "Save as my route" keeps the start point and mode on the phone only; once saved, the button is replaced by a note saying so.
+- S8 layout: the map and a scrolling panel split the screen evenly, so the map never changes size when the routes arrive (that would throw off zoom-to-fit). The two route cards sit side by side unless the screen is narrower than 360 dp or the phone's text size is above 1.3×, then they stack. When `same_route` is true there is one card ("Fastest and lower-risk") and the message "Good news: your fastest route is also the lower-risk route" replaces the server's note. Under the note, the selected route's spots are listed ("No high-risk spots or student reports on this route." when there are none), each with a matching numbered marker on the map. Switching routes switches the list and closes any open hazard card. "Save as my route" keeps the start point and mode on the phone only; once saved, the button is replaced by a note saying so.
 - Cross-links: Map "Plan my route" → Route tab; Map "Report a close call" → Report tab; a School top spot → Map focused on that spot; a hazard's "Report a problem here" → Report flow, starting with the safety check (S10), with the location filled in.
 
 ### 8.4 State (`src/state/store.ts`, zustand + persist to AsyncStorage)
@@ -974,7 +974,7 @@ type AppState = {
   resetAll(): void;
 };
 ```
-`reportDraft.ts` (not persisted): `{ location, photoUri, description, travelMode: 'walk' | 'bike' | 'scooter', occurred, reportId, ai, photoPublic }` plus `reset()`.
+`reportDraft.ts` (not persisted): `{ location, photoUri, description, travelMode: 'walk' | 'bike' | 'scooter', occurred, reportId, ai, photoPublic }` plus `reset()`. Only `location` exists so far (Step 4.3: "Report a problem here" on a hazard card sets it, then opens the Report tab); the rest arrives with the report flow in Phase 5.
 
 ### 8.5 API client and hooks
 - **`client.ts`:** `apiFetch(path, { method, json, form, timeoutMs })` adds the base URL and `X-Install-Id`. Default timeout 20 s (60 s for `/health`, `POST /reports`, and the first request after launch). It turns `{detail: {code, message}}` into `ApiError(code, message, status)`.
@@ -1001,7 +1001,7 @@ type AppState = {
 - **ReportLayer:** purple pins with "!" → Report card.
 - **RouteLayer:** fastest = `colors.routeFast`, width 5, dashed; lower-risk = `colors.routeLower`, width 6, solid; draw the selected route last (and give it the higher `zIndex`) so it's on top. Dashed lines use `lineCap="butt"`: the default round caps fill in the gaps and make a dashed line look solid. When `same_route` is true, draw only the blue line. The first view fits the start point and school; when the routes arrive, `fitToCoordinates` fits both routes (tried again on `onMapReady`).
 - **StartMarker:** a teal pin whose tip is the start point (S8).
-- **HazardMarkers:** numbered circles that match the hazard list.
+- **HazardMarkers:** numbered circles (`NumberBadge`: red for high-risk, purple for spots only students reported) for the selected route only, matching the list under the map. Tapping a marker or a row opens the hazard card (S9) and slides the map to the spot (`moveOnMarkerPress={false}` so Android doesn't also move it). Each marker redraws for half a second before its picture is taken, so its number is drawn first.
 - **Coordinates:** the API sends `[lon, lat]`; react-native-maps wants `{latitude, longitude}`. Always convert with `toLatLng([lon, lat]) → ({ latitude: lat, longitude: lon })`. Swapping these is the most common map bug.
 - **Performance:** fewer than about 400 polylines; memoize layers with `useMemo`.
 
@@ -1031,7 +1031,7 @@ type AppState = {
 - `geo.ts`: `toLatLng`, `regionForRadius`, `distanceMeters` (haversine), `insideCircle`.
 - `format.ts`: `miles(m)` → "0.6 mi"; `minutes(n)` → "12 min"; `percentileText(p)` → "Riskier than 92% of Fairfax-area streets"; hazard-type labels, short labels, and severity labels (Appendix B); crash severity in plain words (K "Fatal", A "Serious injury", B "Visible injury", C "Injury (not visible)", O "No injury"); `monthYear` → "Oct 2026"; the "≈" prefix for estimated values.
 - `image.ts`: `prepareReportPhoto(uri)` → resize the long edge to 1280 px as JPEG quality 0.8 with expo-image-manipulator; return `{ uri, width, height }`.
-- `errors.ts`: `friendlyError(err)` maps `ApiError.code` to text in `strings.ts` (APP_FLOW §8).
+- `errors.ts`: `friendlyRouteError(err, schoolName)` → `{message, action}`: maps `ApiError.code` to text in `strings.ts` (APP_FLOW §8) and to the one button that fits: `retry` (no network, timeout, 5xx), `move-pin` (`NO_NEARBY_PATH`: reopens S7 zoomed in at the old pin), `drop-pin` (`OUTSIDE_AREA`), `change-start` (`NO_ROUTE`, or any other 4xx), `change-school` (`UNKNOWN_SCHOOL`). Report errors join it in Phase 5.
 
 ### 8.10 Loading and errors
 Every screen handles loading (spinner or skeleton with text), empty, error (Banner + Retry), offline, and server-waking states. The full list is in APP_FLOW §8.

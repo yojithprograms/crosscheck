@@ -193,8 +193,7 @@ flowchart TD
 - **Sees:**
   - "2 · Crossing Pickett Rd" + risk badge.
   - "Riskier than 96% of streets in the Fairfax area."
-  - **Why:** up to three reasons (for example, "No traffic signal where you cross").
-  - Student reports line, if any: "1 student report here in the last 6 months, mostly: turning cars."
+  - **Why:** the reasons (for example, "No traffic signal where you cross"). The server puts the student-reports line last in this list when there is one: "1 student report here in the last 6 months, mostly: turning cars."
   - **Tips for this spot** (by hazard kind):
     - Crossing or intersection: "Cross at a signal or crosswalk if you can. Wait for the walk sign, and watch for turning cars."
     - Along a road: "Stay on the sidewalk or path, as far from traffic as you can."

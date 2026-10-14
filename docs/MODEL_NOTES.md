@@ -71,3 +71,23 @@ Every percentage is a share of all 250 starts, so "Same route" + "fewer" + "Equa
 1. Leave it. The notes are honest, and S19 explains lower-risk isn't risk-free.
 2. Add an exposure number to each route (for example, the share of the route on high-risk streets) and show it on the cards next to the spot count. It matches what the route search actually optimizes. It needs one new field in the `Route` response.
 3. Raise `BETA_CROSSING_M` and `GAMMA_INTERSECTION_M` so crossing risky roads costs more, which cuts spots at the price of longer detours. Re-run this comparison after any change.
+
+## Step 4.3 — The circle shows more than we can route from (2026-10-13)
+
+The pin picker (S7) draws a circle of `radius_m` around the school and says that is the area CrossCheck covers. The walk graph behind it (Step 1.10) is clipped to what can be reached within `radius_m` of **walking**, not **straight-line** distance. Walking routes are longer than straight lines, so the graph covers only part of the circle. We checked by sending a start point from every cell of a 200 m grid inside each circle to `POST /routes`:
+
+| School | Radius | Routable within 0–25% of the radius | 25–50% | 50–75% | 75–100% | Whole circle |
+|---|---|---|---|---|---|---|
+| Frost MS | 2,400 m | 100% | 96% | 80% | 13% | 55% |
+| Woodson HS | 2,400 m | 100% | 98% | 90% | 31% | 67% |
+| Olde Creek ES | 1,600 m | 100% | 83% | 64% | 32% | 55% |
+| Marshall HS | 2,400 m | 96% | 82% | 66% | 19% | 51% |
+| Kilmer MS | 2,400 m | 100% | 96% | 67% | 16% | 53% |
+| Lemon Road ES | 1,600 m | 100% | 89% | 78% | 43% | 66% |
+
+Near the school almost everything works (82–100% within half the radius). In the outer quarter of the circle only 13–43% does. For the refused points at Marshall HS, 399 of 402 are 250 m or more from any street in the graph, so it is a coverage gap and not a snapping problem. A student who drops a pin there gets "We couldn't find a sidewalk or street near there. Try moving the pin," even in the middle of a neighborhood.
+
+**Options (not decided).**
+1. Clip each walk graph to **straight-line** distance (for example `radius_m × 1.2`, so detours can leave the circle) and keep the largest connected component. Every point in the circle can then start a route. The graphs would be about 2–3 times bigger (still under `MAX_GRAPH_EDGES`, but about 15 MB in the repo and more server memory). Re-run `python -m crosscheck_pipeline.run_all --from s10` after fixing the entrance coordinates in `schools_pilot.csv`, which needs that re-run anyway.
+2. Draw the area we can really route from (for example, everything within 250 m of a graph street) instead of a circle, and disable **Start here** outside it. Honest, but the covered area is much smaller than the circle.
+3. Shrink `radius_m` until the whole circle is routable. Simplest, but it covers only about 1 mile around a high school.

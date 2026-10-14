@@ -934,10 +934,10 @@ mobile/
     │   └── how-it-works.tsx          # S19 (modal)
     ├── api/        client.ts, types.ts, hooks.ts
     ├── state/      store.ts (persisted), reportDraft.ts (not persisted)
-    ├── map/        RiskLayer, CrashLayer, ReportLayer, RouteLayer, HazardMarkers, CoverageCircle, CenterPin
+    ├── map/        RiskLayer, CrashLayer, ReportLayer, RouteLayer, StartMarker, HazardMarkers, CoverageCircle, CenterPin
     ├── components/ PrimaryButton, SecondaryButton, TextButton, Chip, ChipGroup, Card, BottomCard,
-    │               RiskBadge, Legend, RouteStart (S6), PinPicker (S7), RouteCard, HazardRow, StepHeader,
-    │               Banner, EmptyState, LoadingOverlay, SafetyNote
+    │               RiskBadge, Legend, RouteStart (S6), PinPicker (S7), RouteResults (S8), RouteCard, HazardRow,
+    │               StepHeader, Banner, EmptyState, LoadingOverlay, SafetyNote
     ├── theme/      colors.ts, type.ts, spacing.ts
     ├── copy/       strings.ts (all user-facing text)
     └── utils/      geo.ts, format.ts, location.ts (one-time GPS read), image.ts, errors.ts
@@ -946,7 +946,8 @@ mobile/
 ### 8.3 Navigation rules
 - The root layout is a `Stack` holding `onboarding`, `(tabs)`, and three modals (`settings`, `how-it-works`, `school-report`, each with `presentation: "modal"`). It waits for the saved store to load. If `ageGate` is `"under13"` → the S2 "ask an adult" message; if `onboarded` is false → `/onboarding/welcome`; otherwise the tabs.
 - Tabs: **Map** (home), **Route**, **Report**, **School**. A gear icon in the header opens Settings as a modal.
-- Route tab (`route.tsx`): S6 → S7 → S8 are one screen with in-memory step state (`start`, `pin`, `picked`). A start point is never persisted or logged unless the student taps "Save as my route." The app checks "inside the circle" against `radius_m` exactly; the server allows `AREA_SLACK` (1.1×), so the app is the stricter of the two. A GPS fix outside the circle, a denied permission, or a timeout (15 s) all send the student to the pin picker with a message.
+- Route tab (`route.tsx`): S6 → S7 → S8 are one screen with in-memory step state (`start`, `pin`, `results`). A start point is never persisted or logged unless the student taps "Save as my route." The app checks "inside the circle" against `radius_m` exactly; the server allows `AREA_SLACK` (1.1×), so the app is the stricter of the two. A GPS fix outside the circle, a denied permission, or a timeout (15 s) all send the student to the pin picker with a message.
+- S8 layout: the map and a scrolling panel split the screen evenly, so the map never changes size when the routes arrive (that would throw off zoom-to-fit). The two route cards sit side by side unless the screen is narrower than 360 dp or the phone's text size is above 1.3×, then they stack. When `same_route` is true there is one card ("Fastest and lower-risk") and the message "Good news: your fastest route is also the lower-risk route" replaces the server's note. "Save as my route" keeps the start point and mode on the phone only; once saved, the button is replaced by a note saying so.
 - Cross-links: Map "Plan my route" → Route tab; Map "Report a close call" → Report tab; a School top spot → Map focused on that spot; a hazard's "Report a problem here" → Report flow, starting with the safety check (S10), with the location filled in.
 
 ### 8.4 State (`src/state/store.ts`, zustand + persist to AsyncStorage)
@@ -987,7 +988,7 @@ type AppState = {
 | `useRiskLayer(id)`, `useCrashes(id)` | GET risk-layer / crashes | 1 day |
 | `useReports(id)` | GET /schools/{id}/reports | 30 s; refetch on focus |
 | `useSegment(school, seg)` | GET /segments/… | 5 min |
-| `useCompareRoutes()` | POST /routes | Mutation |
+| `useCompareRoutes()` | POST /routes | Mutation with `gcTime: 0` and `networkMode: "always"`: the start point never sits in a query key or cache, and going offline fails fast (so S8 can offer Retry) instead of waiting |
 | `useCreateReport()`, `useConfirmReport()`, `useDeleteReport()` | Reports | Mutations; on success, invalidate that school's `reports` and `summary` |
 | `useSummary(id)` | GET summary | 1 min |
 | `useMeta()` | GET /meta | 1 day |
@@ -998,7 +999,8 @@ type AppState = {
 - **RiskLayer:** one `Polyline` per line part. High: `colors.riskHigh`, width 6, solid. Medium: `colors.riskMedium`, width 4, dashed (`lineDashPattern={[8, 6]}`) so risk isn't shown by color alone. Tappable → Street card (S5).
 - **CrashLayer:** small dark markers with a walking or bike icon; serious and fatal crashes get a red ring. Use `tracksViewChanges={false}` on custom markers.
 - **ReportLayer:** purple pins with "!" → Report card.
-- **RouteLayer:** fastest = `colors.routeFast`, width 5, dashed; lower-risk = `colors.routeLower`, width 6, solid; draw the selected route last so it's on top.
+- **RouteLayer:** fastest = `colors.routeFast`, width 5, dashed; lower-risk = `colors.routeLower`, width 6, solid; draw the selected route last (and give it the higher `zIndex`) so it's on top. Dashed lines use `lineCap="butt"`: the default round caps fill in the gaps and make a dashed line look solid. When `same_route` is true, draw only the blue line. The first view fits the start point and school; when the routes arrive, `fitToCoordinates` fits both routes (tried again on `onMapReady`).
+- **StartMarker:** a teal pin whose tip is the start point (S8).
 - **HazardMarkers:** numbered circles that match the hazard list.
 - **Coordinates:** the API sends `[lon, lat]`; react-native-maps wants `{latitude, longitude}`. Always convert with `toLatLng([lon, lat]) → ({ latitude: lat, longitude: lon })`. Swapping these is the most common map bug.
 - **Performance:** fewer than about 400 polylines; memoize layers with `useMemo`.

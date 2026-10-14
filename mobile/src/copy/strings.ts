@@ -114,11 +114,24 @@ export const strings = {
     startHere: "Start here",
     pinLabel: "Start point pin, fixed in the center of the map",
   },
-  // Temporary until Step 4.2 builds the route results (S8).
-  pickedStart: {
-    title: "Start point chosen",
-    body: (miles: string, school: string) => `About ${miles} from ${school}. Route results are the next step.`,
+  // S8 · Route results
+  results: {
+    finding: "Finding routes…",
+    fastest: "Fastest",
+    lowerRisk: "Lower-risk",
+    both: "Fastest and lower-risk",
+    spots: (count: number) => `${count} high-risk ${count === 1 ? "spot" : "spots"}`,
+    cardLabel: (label: string, time: string, distance: string, spots: string, selected: boolean) =>
+      `${label} route, ${time}, ${distance}, ${spots}${selected ? ", showing on the map" : ""}`,
+    sameRoute: "Good news: your fastest route is also the lower-risk route.",
+    save: "Save as my route",
+    savedNote: "Saved on this phone only. You'll find it on the Route tab under My usual route.",
     changeStart: "Change start",
+    smallPrint: "Lower-risk isn't risk-free. Follow crossing guards and signals.",
+    startMarker: "Your start point",
+    retry: "Retry",
+    failed: "We couldn't get your routes. Check your connection and try again.",
+    noRoutes: "We couldn't find routes from there. Try a different start.",
   },
 
   // S5 · Detail cards

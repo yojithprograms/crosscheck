@@ -5,6 +5,8 @@ const METERS_PER_DEG_LAT = 110540;
 const METERS_PER_DEG_LON_AT_EQUATOR = 111320;
 const EARTH_RADIUS_M = 6371000;
 const MAP_SPAN_OF_RADIUS = 2.2; // the school map starts about 2.2 x the radius wide (DESIGN.md §8.6)
+const FIT_PADDING_FACTOR = 1.5; // regionFitting leaves this much room around the points
+const MIN_FIT_SPAN_DEG = 0.004; // about 450 m, so two nearby points don't zoom in absurdly far
 
 export type LatLng = { latitude: number; longitude: number };
 
@@ -29,6 +31,25 @@ export function regionForRadius(lat: number, lon: number, radiusM: number) {
     longitude: lon,
     latitudeDelta: spanM / METERS_PER_DEG_LAT,
     longitudeDelta: spanM / (METERS_PER_DEG_LON_AT_EQUATOR * Math.cos((lat * Math.PI) / 180)),
+  };
+}
+
+/**
+ * A map region that shows all the given points with some room around them. Used for the first view of the
+ * route results (start point and school), before the routes arrive and `fitToCoordinates` takes over.
+ */
+export function regionFitting(points: LatLng[]) {
+  const lats = points.map((p) => p.latitude);
+  const lons = points.map((p) => p.longitude);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLon = Math.min(...lons);
+  const maxLon = Math.max(...lons);
+  return {
+    latitude: (minLat + maxLat) / 2,
+    longitude: (minLon + maxLon) / 2,
+    latitudeDelta: Math.max((maxLat - minLat) * FIT_PADDING_FACTOR, MIN_FIT_SPAN_DEG),
+    longitudeDelta: Math.max((maxLon - minLon) * FIT_PADDING_FACTOR, MIN_FIT_SPAN_DEG),
   };
 }
 

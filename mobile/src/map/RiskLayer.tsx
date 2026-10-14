@@ -52,6 +52,7 @@ export const RiskLayer = memo(function RiskLayer({ layer, onSelect }: Props) {
             strokeColor={colors.riskMedium}
             strokeWidth={4}
             lineDashPattern={[8, 6]}
+            lineCap="butt" // round caps would fill in the gaps, and the dashes are what separate medium from high
             tappable
             onPress={() => onSelect(feature)}
           />

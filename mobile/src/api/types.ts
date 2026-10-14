@@ -84,6 +84,15 @@ export type Route = {
   hazards: Hazard[];
 };
 
+export type RouteKind = "fastest" | "lower_risk"; // which of the two routes in a RouteComparison
+
+// The body of POST /routes. The origin is sent for this one call and is never stored on the server.
+export type RouteRequest = {
+  school_id: string;
+  origin: { lat: number; lon: number };
+  mode: "walk" | "bike";
+};
+
 export type RouteComparison = {
   school_id: string;
   mode: "walk" | "bike";

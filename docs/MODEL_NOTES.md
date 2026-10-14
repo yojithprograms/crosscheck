@@ -45,3 +45,29 @@ VDOT's traffic-count layer (ADT, average daily traffic) matched 44.9% of segment
 | Lift | 6.4x | 6.4x |
 
 By the rule in DESIGN (keep it only if capture improves) it stays on. Honestly, the gain is about two crashes out of 676, which is inside the noise. Traffic volume does become the strongest single weight (odds ratio 1.84 per standard deviation) and it adds the "About N cars a day" reason. The Step 1.7 table above was computed before this change; `models/metrics.json` now holds the numbers with traffic volume (roads-only 0.623, full 0.643).
+
+## Steps 2.3 and 4.2 — How the two routes compare (2026-10-13)
+
+**How we measured.** For each school, 250 random graph nodes between 300 m and 1,600 m (straight line) from the entrance were used as walking start points, and each was sent to `POST /routes` on the local server. These are spread across the map, not weighted by where students live, so treat the percentages as a rough picture.
+
+| School | Same route | Lower-risk has fewer high-risk spots | Equal | **More** | Lower-risk has lower mean risk | Median extra time | Mean spots, fastest → lower-risk |
+|---|---|---|---|---|---|---|---|
+| Frost MS | 13% | 6% | 66% | 15% | 86% | 2 min | 1.12 → 1.22 |
+| Woodson HS | 5% | 4% | 72% | 19% | 92% | 2 min | 1.37 → 1.52 |
+| Olde Creek ES | 42% | 4% | 52% | 3% | 58% | 1 min | 0.31 → 0.30 |
+| Marshall HS | 0% | 6% | 37% | **56%** | 99% | 2 min | 1.65 → 2.18 |
+| Kilmer MS | 3% | 50% | 40% | 7% | 97% | 3 min | 2.12 → 1.29 |
+| Lemon Road ES | 13% | 48% | 26% | 12% | 77% | 1 min | 1.38 → 0.99 |
+
+Every percentage is a share of all 250 starts, so "Same route" + "fewer" + "Equal" + "More" adds up to 100%. "Lower mean risk" counts the starts where the two routes differ and the lower-risk one has the lower length-weighted mean risk.
+
+**What it means.**
+- The lower-risk route almost always lowers the *length-weighted mean risk* of the streets walked (77–99% of the time at the five schools with real arterials). It does what the cost function in DESIGN §7.6 asks for.
+- It does **not** reliably lower the *count of high-risk spots* shown on the route cards. Only at Kilmer MS and Lemon Road ES does the count clearly drop. At Marshall HS the lower-risk route shows *more* spots than the fastest one in 56% of starts.
+- Why: a "spot" is one group of hazards within 40 m along the path (DESIGN §7.7). Walking 800 m along a high-risk road is **one** spot. Crossing three high-risk roads is **three** spots. The route cost charges by meters spent on risky streets, so it will happily swap one long walk along Leesburg Pike for several crossings. Example at Marshall HS (start 38.89652, -77.20251): mean risk 84 → 48 and 2 → 5 spots, for 2,298 m → 3,246 m. Marshall HS itself is on Leesburg Pike (98th–100th percentile), so every route to it touches a high-risk road.
+- The server's note already says only what is true ("…spends less of the trip on risky streets" instead of "avoids spots" when the spot count didn't drop), but the two route cards can show a bigger spot count on the lower-risk card.
+
+**Options (not decided).**
+1. Leave it. The notes are honest, and S19 explains lower-risk isn't risk-free.
+2. Add an exposure number to each route (for example, the share of the route on high-risk streets) and show it on the cards next to the spot count. It matches what the route search actually optimizes. It needs one new field in the `Route` response.
+3. Raise `BETA_CROSSING_M` and `GAMMA_INTERSECTION_M` so crossing risky roads costs more, which cuts spots at the price of longer detours. Re-run this comparison after any change.

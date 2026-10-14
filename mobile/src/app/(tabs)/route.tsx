@@ -6,22 +6,20 @@ import { useSchools } from "@/api/hooks";
 import { EmptyState } from "@/components/EmptyState";
 import { PinPicker } from "@/components/PinPicker";
 import { PrimaryButton } from "@/components/PrimaryButton";
+import { RouteResults } from "@/components/RouteResults";
 import { RouteStart } from "@/components/RouteStart";
-import { SecondaryButton } from "@/components/SecondaryButton";
 import { strings } from "@/copy/strings";
 import { useAppStore, type LatLon, type TravelMode } from "@/state/store";
 import { colors } from "@/theme/colors";
-import { distanceMeters, pointToLatLng } from "@/utils/geo";
-import { miles } from "@/utils/format";
 
 // Where the student is in the route flow (S6 to S8). This lives only in memory: a start point near
-// someone's home is never saved or logged unless the student taps "Save as my route" (Step 4.2).
+// someone's home is never saved or logged unless the student taps "Save as my route".
 type Step =
   | { name: "start" }
   | { name: "pin"; notice?: string }
-  | { name: "picked"; origin: LatLon; mode: TravelMode };
+  | { name: "results"; origin: LatLon; mode: TravelMode };
 
-/** The Route tab: S6 start, S7 pin picker, then S8 results (coming in Step 4.2). */
+/** The Route tab: S6 start, S7 pin picker, then S8 route results. */
 export default function RouteTab() {
   const router = useRouter();
   const schoolId = useAppStore((state) => state.schoolId);
@@ -83,19 +81,18 @@ export default function RouteTab() {
         school={school}
         notice={step.notice}
         onBack={() => setStep({ name: "start" })}
-        onConfirm={(origin) => setStep({ name: "picked", origin, mode: useAppStore.getState().travelMode })}
+        onConfirm={(origin) => setStep({ name: "results", origin, mode: useAppStore.getState().travelMode })}
       />
     );
   }
 
-  if (step.name === "picked") {
-    const away = distanceMeters(pointToLatLng(step.origin), { latitude: school.lat, longitude: school.lon });
+  if (step.name === "results") {
     return (
-      <EmptyState
-        icon="checkmark-circle-outline"
-        title={strings.pickedStart.title}
-        body={strings.pickedStart.body(miles(away), school.name)}
-        action={<SecondaryButton title={strings.pickedStart.changeStart} onPress={() => setStep({ name: "start" })} />}
+      <RouteResults
+        school={school}
+        origin={step.origin}
+        mode={step.mode}
+        onChangeStart={() => setStep({ name: "start" })}
       />
     );
   }
@@ -103,7 +100,7 @@ export default function RouteTab() {
   return (
     <RouteStart
       school={school}
-      onPicked={(origin, mode) => setStep({ name: "picked", origin, mode })}
+      onPicked={(origin, mode) => setStep({ name: "results", origin, mode })}
       onDropPin={(notice) => setStep({ name: "pin", notice })}
     />
   );

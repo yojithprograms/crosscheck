@@ -1,8 +1,17 @@
-import { onlineManager, useQuery } from "@tanstack/react-query";
+import { onlineManager, useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { apiFetch } from "@/api/client";
-import type { CrashFeature, FeatureCollection, Meta, RiskFeature, School, SegmentDetail } from "@/api/types";
+import type {
+  CrashFeature,
+  FeatureCollection,
+  Meta,
+  RiskFeature,
+  RouteComparison,
+  RouteRequest,
+  School,
+  SegmentDetail,
+} from "@/api/types";
 
 // Waking a sleeping free host can take up to a minute, so keep trying for about that long.
 const WAKE_RETRIES = 12;
@@ -87,6 +96,19 @@ export function useMeta() {
     queryKey: ["meta"],
     queryFn: () => apiFetch<Meta>("/meta"),
     staleTime: ONE_DAY_MS,
+  });
+}
+
+/**
+ * The fastest and the lower-risk route to school (POST /routes). This is a mutation rather than a query on
+ * purpose: a query would put the start point (which may be near someone's home) in a cache key. With
+ * gcTime 0 the request and its answer are dropped as soon as the results screen closes.
+ */
+export function useCompareRoutes() {
+  return useMutation({
+    mutationFn: (request: RouteRequest) => apiFetch<RouteComparison>("/routes", { method: "POST", json: request }),
+    gcTime: 0,
+    networkMode: "always", // offline: fail right away so the screen can offer Retry, instead of waiting forever
   });
 }
 

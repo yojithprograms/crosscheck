@@ -2,6 +2,7 @@
 export const colors = {
   brand: "#0F766E", // teal: primary buttons, active tab, school marker
   brandDark: "#115E59",
+  brandTint: "#F0FDFA", // very light teal: the selected route card
   onBrand: "#FFFFFF",
   bg: "#FFFFFF",
   surface: "#F8FAFC", // cards

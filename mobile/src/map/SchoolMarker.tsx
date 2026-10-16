@@ -7,7 +7,7 @@ import type { School } from "@/api/types";
 import { strings } from "@/copy/strings";
 import { colors } from "@/theme/colors";
 
-/** A teal circle with a school icon at the school's main entrance. */
+/** A blue circle with a school icon at the school's main entrance. */
 export const SchoolMarker = memo(function SchoolMarker({ school }: { school: School }) {
   return (
     <Marker

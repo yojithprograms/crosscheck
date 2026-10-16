@@ -5,7 +5,7 @@ import { StyleSheet, Text, View } from "react-native";
 import type { RiskClass } from "@/api/types";
 import { strings } from "@/copy/strings";
 import { colors } from "@/theme/colors";
-import { spacing } from "@/theme/spacing";
+import { shape, spacing } from "@/theme/spacing";
 import { type } from "@/theme/type";
 
 const looks: Record<RiskClass, { icon: ComponentProps<typeof Ionicons>["name"]; color: string; label: string }> = {
@@ -31,10 +31,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.xs,
     borderWidth: 1.5,
-    borderRadius: 999,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+    borderRadius: shape.pill,
+    backgroundColor: colors.surface, // white inside, so the text keeps its contrast on tinted rows
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: 3,
     alignSelf: "flex-start",
   },
-  label: { ...type.caption, fontWeight: "600" },
+  label: { ...type.caption, fontWeight: "700" },
 });

@@ -12,6 +12,7 @@ import { CoverageCircle } from "@/map/CoverageCircle";
 import { SchoolMarker } from "@/map/SchoolMarker";
 import type { LatLon } from "@/state/store";
 import { colors } from "@/theme/colors";
+import { shadow } from "@/theme/shadow";
 import { shape, spacing } from "@/theme/spacing";
 import { insideCircle, pointToLatLng, regionForRadius } from "@/utils/geo";
 
@@ -85,7 +86,7 @@ export function PinPicker({ school, start, notice, onBack, onConfirm }: Props) {
           style={styles.back}
           hitSlop={8}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Ionicons name="arrow-back" size={24} color={colors.brandDark} />
         </Pressable>
       </View>
 
@@ -100,26 +101,27 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   top: { position: "absolute", top: 0, left: 0, right: 0 },
   back: {
-    marginTop: spacing.sm,
-    marginLeft: spacing.sm,
+    marginTop: spacing.md,
+    marginLeft: spacing.md,
     width: shape.minTouchTarget,
     height: shape.minTouchTarget,
     borderRadius: shape.minTouchTarget / 2,
-    backgroundColor: colors.bg,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
+    ...shadow.floating,
   },
   panel: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: colors.bg,
-    padding: spacing.sm,
+    backgroundColor: colors.surface,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xl,
     paddingHorizontal: shape.screenPadding,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
+    borderTopLeftRadius: shape.sheetRadius,
+    borderTopRightRadius: shape.sheetRadius,
+    ...shadow.raised,
   },
 });

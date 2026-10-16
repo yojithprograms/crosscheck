@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -71,31 +72,37 @@ export function RouteStart({ school, onPicked, onDropPin }: Props) {
         </Card>
       ) : null}
 
-      <Text style={styles.section}>{strings.start.whereTitle}</Text>
-      <View style={styles.buttons}>
-        <PrimaryButton
-          title={locating ? strings.start.findingLocation : strings.start.useLocation}
-          icon="locate"
-          loading={locating}
-          onPress={() => void useMyLocation()}
-        />
-        <SecondaryButton title={strings.start.dropPin} onPress={() => onDropPin()} disabled={locating} />
-      </View>
+      <Card>
+        <Text style={styles.section}>{strings.start.whereTitle}</Text>
+        <View style={styles.buttons}>
+          <PrimaryButton
+            title={locating ? strings.start.findingLocation : strings.start.useLocation}
+            icon="locate"
+            loading={locating}
+            onPress={() => void useMyLocation()}
+          />
+          <SecondaryButton title={strings.start.dropPin} onPress={() => onDropPin()} disabled={locating} />
+        </View>
+      </Card>
 
       <ChipGroup options={MODE_OPTIONS} value={travelMode} onChange={setTravelMode} />
 
-      <Text style={styles.tip}>{strings.start.tip}</Text>
+      <View style={styles.tipRow}>
+        <Ionicons name="bulb-outline" size={18} color={colors.brandDark} />
+        <Text style={styles.tip}>{strings.start.tip}</Text>
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   content: { padding: shape.screenPadding, gap: spacing.lg },
-  title: { ...type.sectionTitle, color: colors.text },
-  section: { ...type.headline, color: colors.text },
+  title: { ...type.screenTitle, color: colors.text },
+  section: { ...type.headline, color: colors.text, marginBottom: spacing.sm },
   cardTitle: { ...type.headline, color: colors.text },
   body: { ...type.body, color: colors.textMuted },
   cardButton: { marginTop: spacing.sm },
   buttons: { gap: spacing.sm },
-  tip: { ...type.caption, color: colors.textMuted },
+  tipRow: { flexDirection: "row", gap: spacing.sm, alignItems: "flex-start", paddingHorizontal: spacing.xs },
+  tip: { ...type.caption, color: colors.textMuted, flex: 1 },
 });

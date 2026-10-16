@@ -50,7 +50,7 @@ flowchart TD
 
 ## 1. Layout used everywhere
 
-- **Bottom tab bar:** Map (`map`) · Route (`navigate`) · Report (`megaphone`) · School (`school`). The active tab is teal.
+- **Bottom tab bar:** Map (`map`) · Route (`navigate`) · Report (`megaphone`) · School (`school`). The active tab is blue, with a filled icon on a pale blue pill.
 - **Header:** screen title on the left; gear icon on the right → Settings (S18).
 - **Banners** (just under the header, any screen): "Waking up the server… this can take up to a minute," "You're offline," and error messages with **Retry**.
 - **Saved on the device only:** age answer, onboarding done, chosen school, travel mode, saved route start, map layer toggles, and a random install ID.
@@ -60,7 +60,7 @@ flowchart TD
 ## 2. First launch: S0 → S1 → S2 → S3 → S4
 
 ### S0 · Launch
-- **Sees:** the CrossCheck logo on teal for under 2 seconds.
+- **Sees:** the CrossCheck logo on blue for under 2 seconds.
 - **Behind the scenes:** load saved settings; create the install ID if it's missing; call `GET /health` to start waking the server.
 - **Next:** first time → S1. Answered "Under 13" before → the ask-an-adult message (S2). Returning → S4 for the saved school.
 
@@ -105,7 +105,7 @@ flowchart TD
 ### S4 · Map
 - **Sees:**
   - A full-screen map centered on the school, zoomed to show the whole area CrossCheck covers for it.
-  - School marker: a teal circle with a school icon at the main entrance.
+  - School marker: a blue circle with a school icon at the main entrance.
   - **Streets:** red solid thick lines = high risk; amber dashed lines = medium risk; other streets look normal.
   - **Crash dots:** small dark dots with a walking or bike icon (2022 to now). Serious or fatal crashes have a red ring.
   - **Student reports:** purple pins with "!".
@@ -160,7 +160,7 @@ flowchart TD
 ### S7 · Pin picker
 - **Sees:**
   - A full-screen map with a pin fixed in the center (the student moves the map, not the pin).
-  - A light teal circle showing the area CrossCheck covers for this school.
+  - A light blue circle showing the area CrossCheck covers for this school.
   - Banner: "Move the map so the pin is near where you start."
   - **Start here** button; back arrow → S6.
 - **Edge cases:** pin outside the circle → **Start here** is disabled and the banner says "Move the pin inside the circle."

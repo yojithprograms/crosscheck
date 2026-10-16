@@ -1000,7 +1000,7 @@ type AppState = {
 - **CrashLayer:** small dark markers with a walking or bike icon; serious and fatal crashes get a red ring. Use `tracksViewChanges={false}` on custom markers.
 - **ReportLayer:** purple pins with "!" → Report card.
 - **RouteLayer:** fastest = `colors.routeFast`, width 5, dashed; lower-risk = `colors.routeLower`, width 6, solid; draw the selected route last (and give it the higher `zIndex`) so it's on top. Dashed lines use `lineCap="butt"`: the default round caps fill in the gaps and make a dashed line look solid. When `same_route` is true, draw only the blue line. The first view fits the start point and school; when the routes arrive, `fitToCoordinates` fits both routes (tried again on `onMapReady`).
-- **StartMarker:** a teal pin whose tip is the start point (S8).
+- **StartMarker:** a blue pin whose tip is the start point (S8).
 - **HazardMarkers:** numbered circles (`NumberBadge`: red for high-risk, purple for spots only students reported) for the selected route only, matching the list under the map. Tapping a marker or a row opens the hazard card (S9) and slides the map to the spot (`moveOnMarkerPress={false}` so Android doesn't also move it). Each marker redraws for half a second before its picture is taken, so its number is drawn first.
 - **Coordinates:** the API sends `[lon, lat]`; react-native-maps wants `{latitude, longitude}`. Always convert with `toLatLng([lon, lat]) → ({ latitude: lat, longitude: lon })`. Swapping these is the most common map bug.
 - **Performance:** fewer than about 400 polylines; memoize layers with `useMemo`.
@@ -1041,15 +1041,26 @@ Every screen handles loading (spinner or skeleton with text), empty, error (Bann
 ## 9. UI — design system (Subsystem D)
 
 ### 9.1 Colors (`theme/colors.ts`)
+A soft, welcoming pastel-blue family for the app's own surfaces. Risk and map colors are fixed because they carry meaning.
 ```ts
 export const colors = {
-  brand: '#0F766E',       // teal: primary buttons, active tab, school marker
-  brandDark: '#115E59',
-  bg: '#FFFFFF',
-  surface: '#F8FAFC',     // cards
-  border: '#E2E8F0',
-  text: '#0F172A',
-  textMuted: '#475569',
+  // Brand blues: one saturated blue, the rest are pastel tints of it
+  brand: '#2F6BE8',       // buttons, active tab, school marker (white text on it is 4.78:1)
+  brandDark: '#1F4FB8',   // pressed buttons, links on tinted backgrounds
+  brandSoft: '#DCEAFF',   // icon circles, the active tab pill, secondary buttons
+  brandTint: '#EAF2FF',   // the selected route card, soft highlight blocks
+  brandSky: '#BBD6FF',    // decorative circles, grab handles, inactive page dots
+  onBrand: '#FFFFFF',
+  // Surfaces
+  bg: '#F5F9FF',          // screen background (very pale blue)
+  surface: '#FFFFFF',     // cards, panels, sheets
+  border: '#DCE7F7',
+  hairline: '#E8F0FB',    // thin dividers
+  shadow: '#1E3A8A',      // tint of every soft shadow
+  // Text
+  text: '#0B1B3A',        // deep navy
+  textMuted: '#52627F',
+  // Risk and map (unchanged by the theme)
   riskHigh: '#DC2626',    // red, solid thick line
   riskMedium: '#F59E0B',  // amber, dashed line
   riskLow: '#94A3B8',
@@ -1058,23 +1069,26 @@ export const colors = {
   report: '#7C3AED',      // purple pins = student reports
   crash: '#111827',       // dark dots = past crashes
   success: '#16A34A',
-  warnBg: '#FEF3C7',
-  errorBg: '#FEE2E2',
+  // Message strips and disabled controls
+  warnBg: '#FEF3C7', warnText: '#78350F',
+  errorBg: '#FEE2E2', errorText: '#7F1D1D',
+  infoBg: '#E3EEFF', infoText: '#0C3B7A',
+  disabledBg: '#D5E2F7', disabledText: '#6B7F9E',
 };
 ```
 Never show risk by color alone: pair it with line style (solid/dashed), width, a label, or an icon. Body text needs at least 4.5:1 contrast.
 
 ### 9.2 Type (`theme/type.ts`)
-System font. Screen title 28/34 bold · Section title 22/28 semibold · Headline 17/22 semibold · Body 16/22 regular · Caption 13/18 regular. Leave font scaling on.
+System font. Screen title 30/36 extra-bold · Section title 22/28 bold · Headline 17/22 semibold · Body 16/23 regular · Caption 13/18 regular · Eyebrow 12/16 bold uppercase. Leave font scaling on.
 
 ### 9.3 Spacing and shape
-Spacing scale 4, 8, 12, 16, 24, 32. Screen padding 16. Card radius 12. Buttons 52 tall. Touch targets at least 44 × 44.
+Spacing scale 4, 8, 12, 16, 24, 32. Screen padding 20. Card radius 16; sheets have 28 radius top corners; chips and badges are pills. Buttons 56 tall. Touch targets at least 44 × 44. Cards are white on the pale blue screen background and float on a soft blue-tinted shadow (`theme/shadow.ts`) instead of a heavy outline. Buttons and cards shrink slightly under a finger (`PressableScale`).
 
 ### 9.4 Map style
-Default map style. School: teal circle with a school icon. Legend bottom-left on a white card. Layer chips across the top. Main actions in a white panel at the bottom.
+Default map style. School: blue circle with a school icon. Legend bottom-left on a white card. Layer chips across the top. Main actions in a white panel at the bottom, with big rounded top corners and a soft shadow.
 
 ### 9.5 Icons
-`@expo/vector-icons` (Ionicons): `map`, `navigate`, `megaphone`, `school`, `walk`, `bicycle`, `warning`, `alert-circle`, `camera`, `image`, `location`, `share-outline`, `settings-outline`, `information-circle-outline`, `checkmark-circle`.
+`@expo/vector-icons` (Ionicons): `map`, `navigate`, `megaphone`, `school`, `walk`, `bicycle`, `warning`, `alert-circle`, `camera`, `image`, `location`, `share-outline`, `settings-outline`, `information-circle-outline`, `checkmark-circle`, plus `lock-closed`, `shield-checkmark`, `sparkles`, `search`, `bulb-outline`, and `bookmark` on the first-run and route screens.
 
 ### 9.6 Voice and copy rules
 Write for ages 11–18: short sentences, plain words, no blame.

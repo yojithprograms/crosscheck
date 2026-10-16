@@ -20,6 +20,7 @@ import { RiskLayer } from "@/map/RiskLayer";
 import { SchoolMarker } from "@/map/SchoolMarker";
 import { useAppStore, type Layers } from "@/state/store";
 import { colors } from "@/theme/colors";
+import { shadow } from "@/theme/shadow";
 import { shape, spacing } from "@/theme/spacing";
 import { type } from "@/theme/type";
 import { regionForRadius } from "@/utils/geo";
@@ -141,25 +142,27 @@ export default function MapTab() {
   );
 }
 
-const BOTTOM_PANEL_HEIGHT = shape.buttonHeight * 2 + spacing.sm * 3;
+const BOTTOM_PANEL_HEIGHT = shape.buttonHeight * 2 + spacing.sm + spacing.lg + spacing.md; // two buttons, the gap, and the panel padding
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.sm },
   muted: { ...type.caption, color: colors.textMuted },
   top: { position: "absolute", top: 0, left: 0, right: 0 },
-  chips: { flexDirection: "row", gap: spacing.sm, padding: spacing.sm },
-  legend: { position: "absolute", left: spacing.sm },
+  chips: { flexDirection: "row", gap: spacing.sm, padding: spacing.md },
+  legend: { position: "absolute", left: spacing.md },
   panel: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: colors.bg,
-    padding: spacing.sm,
+    backgroundColor: colors.surface,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
     paddingHorizontal: shape.screenPadding,
     gap: spacing.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
+    borderTopLeftRadius: shape.sheetRadius,
+    borderTopRightRadius: shape.sheetRadius,
+    ...shadow.raised,
   },
 });

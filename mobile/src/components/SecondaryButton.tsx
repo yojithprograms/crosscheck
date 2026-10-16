@@ -1,23 +1,25 @@
-import { Pressable, StyleSheet, Text } from "react-native";
+import { StyleSheet, Text } from "react-native";
 
+import { PressableScale } from "@/components/PressableScale";
 import { colors } from "@/theme/colors";
 import { shape, spacing } from "@/theme/spacing";
 import { type } from "@/theme/type";
 
 type Props = { title: string; onPress: () => void; disabled?: boolean };
 
-/** The second-choice button: white with a teal outline, same size as the primary one. */
+/** The second-choice button: a pale blue fill with dark blue text, same size as the primary one. */
 export function SecondaryButton({ title, onPress, disabled }: Props) {
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
       accessibilityState={{ disabled: !!disabled }}
-      style={({ pressed }) => [styles.button, disabled && styles.disabled, pressed && !disabled && styles.pressed]}
+      style={[styles.button, disabled && styles.disabled]}
+      pressedStyle={styles.pressed}
     >
       <Text style={[styles.text, disabled && styles.disabledText]}>{title}</Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -25,15 +27,13 @@ const styles = StyleSheet.create({
   button: {
     height: shape.buttonHeight,
     borderRadius: shape.cardRadius,
-    borderWidth: 2,
-    borderColor: colors.brand,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.brandSoft,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.lg,
   },
-  pressed: { backgroundColor: colors.surface },
-  disabled: { borderColor: colors.riskLow },
-  text: { ...type.headline, color: colors.brand },
-  disabledText: { color: colors.riskLow },
+  pressed: { backgroundColor: colors.brandSky },
+  disabled: { backgroundColor: colors.hairline },
+  text: { ...type.headline, color: colors.brandDark },
+  disabledText: { color: colors.disabledText },
 });

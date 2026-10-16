@@ -1,18 +1,20 @@
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
+import { PressableScale } from "@/components/PressableScale";
 import { colors } from "@/theme/colors";
 import { shape, spacing } from "@/theme/spacing";
+import { shadow } from "@/theme/shadow";
 
 type Props = { children: ReactNode; onPress?: () => void };
 
-/** A rounded surface for grouped content. Pass onPress to make the whole card tappable. */
+/** A white rounded card with a soft shadow, for grouped content. Pass onPress to make the whole card tappable. */
 export function Card({ children, onPress }: Props) {
   if (onPress) {
     return (
-      <Pressable onPress={onPress} accessibilityRole="button" style={styles.card}>
+      <PressableScale onPress={onPress} accessibilityRole="button" style={styles.card} scaleTo={0.98}>
         {children}
-      </Pressable>
+      </PressableScale>
     );
   }
   return <View style={styles.card}>{children}</View>;
@@ -23,8 +25,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: shape.cardRadius,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.hairline,
     padding: spacing.lg,
     gap: spacing.xs,
+    ...shadow.card,
   },
 });

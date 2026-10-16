@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Redirect, useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -20,6 +21,23 @@ const AGE_OPTIONS: { value: Age; label: string }[] = [
   { value: "under13", label: strings.promise.ageUnder13 },
   { value: "13plus", label: strings.promise.age13Plus },
 ];
+
+/** One promise: an icon in a pale blue disc, a heading, and a short paragraph. */
+function InfoCard({ icon, title, body }: { icon: "lock-closed" | "shield-checkmark" | "sparkles"; title: string; body: string }) {
+  return (
+    <Card>
+      <View style={styles.cardRow}>
+        <View style={styles.disc}>
+          <Ionicons name={icon} size={22} color={colors.brand} />
+        </View>
+        <View style={styles.cardTexts}>
+          <Text style={styles.cardTitle}>{title}</Text>
+          <Text style={styles.cardBody}>{body}</Text>
+        </View>
+      </View>
+    </Card>
+  );
+}
 
 export default function BeforeYouStart() {
   const router = useRouter();
@@ -49,18 +67,9 @@ export default function BeforeYouStart() {
       <Text style={styles.title} accessibilityRole="header">
         {strings.promise.title}
       </Text>
-      <Card>
-        <Text style={styles.cardTitle}>{strings.promise.privacyTitle}</Text>
-        <Text style={styles.cardBody}>{strings.promise.privacy}</Text>
-      </Card>
-      <Card>
-        <Text style={styles.cardTitle}>{strings.promise.safetyTitle}</Text>
-        <Text style={styles.cardBody}>{strings.promise.safety}</Text>
-      </Card>
-      <Card>
-        <Text style={styles.cardTitle}>{strings.promise.aiTitle}</Text>
-        <Text style={styles.cardBody}>{strings.promise.ai}</Text>
-      </Card>
+      <InfoCard icon="lock-closed" title={strings.promise.privacyTitle} body={strings.promise.privacy} />
+      <InfoCard icon="shield-checkmark" title={strings.promise.safetyTitle} body={strings.promise.safety} />
+      <InfoCard icon="sparkles" title={strings.promise.aiTitle} body={strings.promise.ai} />
       <View style={styles.age}>
         <Text style={styles.cardTitle}>{strings.promise.ageQuestion}</Text>
         <ChipGroup options={AGE_OPTIONS} value={age} onChange={setAge} />
@@ -71,7 +80,17 @@ export default function BeforeYouStart() {
 
 const styles = StyleSheet.create({
   title: { ...type.screenTitle, color: colors.text },
+  cardRow: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start" },
+  disc: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.brandSoft,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cardTexts: { flex: 1, gap: spacing.xs },
   cardTitle: { ...type.headline, color: colors.text },
   cardBody: { ...type.body, color: colors.textMuted },
-  age: { gap: spacing.sm, marginTop: spacing.sm },
+  age: { gap: spacing.md, marginTop: spacing.sm },
 });

@@ -3,12 +3,14 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-nat
 import { useMeta } from "@/api/hooks";
 import { strings } from "@/copy/strings";
 import { colors } from "@/theme/colors";
+import { shadow } from "@/theme/shadow";
 import { shape, spacing } from "@/theme/spacing";
 import { type } from "@/theme/type";
 
 function Section({ title, body }: { title: string; body: string }) {
   return (
     <View style={styles.section}>
+      <View style={styles.accent} />
       <Text style={styles.sectionTitle} accessibilityRole="header">
         {title}
       </Text>
@@ -44,8 +46,15 @@ export default function HowItWorks() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: shape.screenPadding, gap: spacing.xl },
-  section: { gap: spacing.sm },
+  content: { padding: shape.screenPadding, gap: spacing.lg, backgroundColor: colors.bg },
+  section: {
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: shape.cardRadius,
+    padding: spacing.lg,
+    ...shadow.card,
+  },
+  accent: { width: 32, height: 4, borderRadius: 2, backgroundColor: colors.brand },
   sectionTitle: { ...type.sectionTitle, color: colors.text },
   body: { ...type.body, color: colors.text },
 });

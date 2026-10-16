@@ -16,6 +16,8 @@ import { type } from "@/theme/type";
 function LaunchScreen() {
   return (
     <View style={styles.launch}>
+      <View style={styles.circleOne} />
+      <View style={styles.circleTwo} />
       <Text style={styles.logo}>{strings.appName}</Text>
       <Text style={styles.loading}>{strings.launch.loading}</Text>
     </View>
@@ -31,7 +33,17 @@ function AppStack() {
   const ageGate = useAppStore((state) => state.ageGate);
   if (ageGate === "under13") return <AskAdult />;
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        // The two modal screens (Settings, How risk scores work) share the app's soft blue look.
+        headerTintColor: colors.brandDark,
+        headerTitleStyle: { color: colors.text, fontWeight: "700" },
+        headerStyle: { backgroundColor: colors.surface },
+        headerShadowVisible: false,
+        contentStyle: { backgroundColor: colors.bg },
+      }}
+    >
       <Stack.Screen name="onboarding" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen
@@ -60,7 +72,17 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
-  launch: { flex: 1, backgroundColor: colors.brand, alignItems: "center", justifyContent: "center", gap: 8 },
-  logo: { ...type.screenTitle, color: colors.onBrand },
-  loading: { ...type.body, color: colors.onBrand },
+  launch: {
+    flex: 1,
+    backgroundColor: colors.brand,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    overflow: "hidden",
+  },
+  // Decorative pastel circles behind the name.
+  circleOne: { position: "absolute", top: -90, left: -70, width: 260, height: 260, borderRadius: 130, backgroundColor: colors.onBrand, opacity: 0.1 },
+  circleTwo: { position: "absolute", bottom: -110, right: -80, width: 300, height: 300, borderRadius: 150, backgroundColor: colors.onBrand, opacity: 0.08 },
+  logo: { ...type.screenTitle, fontSize: 36, lineHeight: 42, color: colors.onBrand },
+  loading: { ...type.body, color: colors.brandSoft },
 });

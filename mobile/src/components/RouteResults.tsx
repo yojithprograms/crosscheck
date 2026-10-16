@@ -19,6 +19,7 @@ import { SchoolMarker } from "@/map/SchoolMarker";
 import { StartMarker } from "@/map/StartMarker";
 import { useAppStore, type LatLon, type TravelMode } from "@/state/store";
 import { colors } from "@/theme/colors";
+import { shadow } from "@/theme/shadow";
 import { shape, spacing } from "@/theme/spacing";
 import { type } from "@/theme/type";
 import { friendlyRouteError, type ErrorAction } from "@/utils/errors";
@@ -27,7 +28,9 @@ import { pointToLatLng, regionFitting, toLatLng } from "@/utils/geo";
 const STACK_BELOW_WIDTH = 360; // dp: on narrower phones the two route cards stack instead of sitting side by side
 const STACK_ABOVE_FONT_SCALE = 1.3; // ...and so they do when the phone's text size is large
 // Room around the routes when the map zooms to fit them. The top is larger because the start pin rises above its point.
-const FIT_PADDING = { top: 70, right: 50, bottom: 50, left: 50 };
+// The bottom is larger because the panel below slides up over the map by SHEET_OVERLAP.
+const FIT_PADDING = { top: 70, right: 50, bottom: 90, left: 50 };
+const SHEET_OVERLAP = 28; // how far the rounded panel rides up over the bottom of the map
 const FOCUS_MS = 400; // how long the map takes to slide to a spot when its row or marker is tapped
 
 type Props = {
@@ -149,6 +152,7 @@ export function RouteResults({
       </View>
 
       <ScrollView style={styles.panel} contentContainerStyle={styles.panelContent}>
+        <View style={styles.grab} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden />
         {!comparison && !failure ? (
           <View style={styles.loading} accessibilityLiveRegion="polite">
             <ActivityIndicator color={colors.brand} />
@@ -205,13 +209,22 @@ export function RouteResults({
               {shownRoute.hazards.length === 0 ? (
                 <Text style={styles.noHazards}>{strings.hazards.none}</Text>
               ) : (
-                shownRoute.hazards.map((spot) => <HazardRow key={spot.n} hazard={spot} onPress={() => openHazard(spot)} />)
+                <View style={styles.listCard}>
+                  {shownRoute.hazards.map((spot, index) => (
+                    <HazardRow
+                      key={spot.n}
+                      hazard={spot}
+                      last={index === shownRoute.hazards.length - 1}
+                      onPress={() => openHazard(spot)}
+                    />
+                  ))}
+                </View>
               )}
             </View>
 
             {isSaved ? (
               <View style={styles.saved}>
-                <Ionicons name="bookmark" size={20} color={colors.brand} />
+                <Ionicons name="bookmark" size={22} color={colors.brand} />
                 <Text style={styles.savedText}>{strings.results.savedNote}</Text>
               </View>
             ) : (
@@ -256,8 +269,16 @@ const styles = StyleSheet.create({
   // The map and the panel always split the screen evenly, so the map doesn't change size when the routes
   // arrive (which would throw off the zoom-to-fit).
   map: { flex: 1 },
-  panel: { flex: 1, backgroundColor: colors.bg },
-  panelContent: { padding: shape.screenPadding, gap: spacing.md },
+  panel: {
+    flex: 1,
+    marginTop: -SHEET_OVERLAP,
+    backgroundColor: colors.bg,
+    borderTopLeftRadius: shape.sheetRadius,
+    borderTopRightRadius: shape.sheetRadius,
+    ...shadow.raised,
+  },
+  panelContent: { padding: shape.screenPadding, paddingTop: spacing.sm, gap: spacing.lg },
+  grab: { alignSelf: "center", width: 44, height: 5, borderRadius: 3, backgroundColor: colors.brandSky, marginBottom: spacing.xs },
   loading: { alignItems: "center", gap: spacing.sm, paddingVertical: spacing.xl },
   loadingText: { ...type.body, color: colors.textMuted },
   cards: { flexDirection: "row", gap: spacing.sm },
@@ -265,16 +286,32 @@ const styles = StyleSheet.create({
   half: { flex: 1 },
   note: {
     flexDirection: "row",
-    gap: spacing.sm,
+    gap: spacing.md,
     backgroundColor: colors.infoBg,
     borderRadius: shape.cardRadius,
-    padding: spacing.md,
+    padding: spacing.lg,
   },
   noteTexts: { flex: 1, gap: spacing.xs },
   noteText: { ...type.body, color: colors.infoText },
-  listTitle: { ...type.headline, color: colors.text, marginBottom: spacing.xs },
+  listTitle: { ...type.headline, color: colors.text, marginBottom: spacing.sm },
+  listCard: {
+    backgroundColor: colors.surface,
+    borderRadius: shape.cardRadius,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    ...shadow.card,
+  },
   noHazards: { ...type.body, color: colors.textMuted },
-  saved: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: shape.minTouchTarget },
+  saved: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    minHeight: shape.minTouchTarget,
+    backgroundColor: colors.brandTint,
+    borderRadius: shape.cardRadius,
+    padding: spacing.md,
+  },
   savedText: { ...type.body, color: colors.text, flex: 1 },
   smallPrint: { ...type.caption, color: colors.textMuted, textAlign: "center" },
 });

@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { strings } from "@/copy/strings";
 import { colors } from "@/theme/colors";
+import { shadow } from "@/theme/shadow";
 import { shape, spacing } from "@/theme/spacing";
 import { type } from "@/theme/type";
 
@@ -46,7 +47,7 @@ export function Legend() {
         style={styles.info}
         hitSlop={8}
       >
-        <Ionicons name="information-circle-outline" size={26} color={colors.brand} />
+        <Ionicons name="information-circle" size={26} color={colors.brand} />
       </Pressable>
     </View>
   );
@@ -54,12 +55,12 @@ export function Legend() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.bg,
+    backgroundColor: colors.surface,
     borderRadius: shape.cardRadius,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.sm,
-    gap: 4,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    gap: spacing.xs,
+    ...shadow.floating,
   },
   item: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   swatch: { width: 28, alignItems: "center" },

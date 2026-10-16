@@ -39,7 +39,7 @@ export function HazardCard({ hazard, onReport }: Props) {
 const styles = StyleSheet.create({
   wrap: { gap: spacing.sm },
   title: { ...type.sectionTitle, color: colors.text, paddingRight: shape.minTouchTarget },
-  section: { ...type.headline, color: colors.text, marginTop: spacing.sm },
+  section: { ...type.headline, color: colors.text, marginTop: spacing.md },
   body: { ...type.body, color: colors.text },
   button: { marginTop: spacing.md },
 });

@@ -4,6 +4,7 @@ import { Animated, PanResponder, Pressable, ScrollView, StyleSheet, View, useWin
 
 import { strings } from "@/copy/strings";
 import { colors } from "@/theme/colors";
+import { shadow } from "@/theme/shadow";
 import { shape, spacing } from "@/theme/spacing";
 
 const MAX_HEIGHT_SHARE = 0.6; // never taller than 60% of the screen
@@ -54,7 +55,9 @@ export function BottomCard({ visible, onClose, children }: Props) {
         style={styles.close}
         hitSlop={8}
       >
-        <Ionicons name="close" size={26} color={colors.text} />
+        <View style={styles.closeDisc}>
+          <Ionicons name="close" size={20} color={colors.brandDark} />
+        </View>
       </Pressable>
       <ScrollView contentContainerStyle={styles.content}>{children}</ScrollView>
     </Animated.View>
@@ -67,28 +70,30 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: colors.bg,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
-    elevation: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: -4 },
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: shape.sheetRadius,
+    borderTopRightRadius: shape.sheetRadius,
+    ...shadow.raised,
   },
   handleArea: { height: 28, alignItems: "center", justifyContent: "center" },
-  handle: { width: 40, height: 5, borderRadius: 3, backgroundColor: colors.border },
+  handle: { width: 44, height: 5, borderRadius: 3, backgroundColor: colors.brandSky },
   close: {
     position: "absolute",
-    top: 6,
-    right: 8,
+    top: 8,
+    right: 12,
     width: shape.minTouchTarget,
     height: shape.minTouchTarget,
     alignItems: "center",
     justifyContent: "center",
     zIndex: 2,
+  },
+  closeDisc: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.brandTint,
+    alignItems: "center",
+    justifyContent: "center",
   },
   content: { paddingHorizontal: shape.screenPadding, paddingBottom: spacing.xl, gap: spacing.sm },
 });

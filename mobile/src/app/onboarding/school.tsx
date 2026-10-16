@@ -1,27 +1,30 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { useSchools } from "@/api/hooks";
 import type { School } from "@/api/types";
 import { EmptyState } from "@/components/EmptyState";
 import { OnboardingScreen } from "@/components/OnboardingScreen";
 import { PageDots } from "@/components/PageDots";
+import { PressableScale } from "@/components/PressableScale";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { strings } from "@/copy/strings";
 import { useAppStore } from "@/state/store";
 import { colors } from "@/theme/colors";
+import { shadow } from "@/theme/shadow";
 import { shape, spacing } from "@/theme/spacing";
 import { type } from "@/theme/type";
 
 function SchoolRow({ school, selected, onPress }: { school: School; selected: boolean; onPress: () => void }) {
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       accessibilityRole="radio"
       accessibilityState={{ selected }}
       style={[styles.row, selected && styles.rowSelected]}
+      scaleTo={0.98}
     >
       <View style={styles.rowText}>
         <Text style={styles.schoolName}>{school.name}</Text>
@@ -29,8 +32,12 @@ function SchoolRow({ school, selected, onPress }: { school: School; selected: bo
           <Text style={styles.levelText}>{strings.schoolPicker.levels[school.level]}</Text>
         </View>
       </View>
-      {selected ? <Ionicons name="checkmark-circle" size={26} color={colors.brand} /> : null}
-    </Pressable>
+      <Ionicons
+        name={selected ? "checkmark-circle" : "ellipse-outline"}
+        size={26}
+        color={selected ? colors.brand : colors.border}
+      />
+    </PressableScale>
   );
 }
 
@@ -108,15 +115,18 @@ export default function ChooseSchool() {
       <Text style={styles.title} accessibilityRole="header">
         {strings.schoolPicker.title}
       </Text>
-      <TextInput
-        value={query}
-        onChangeText={setQuery}
-        placeholder={strings.schoolPicker.searchPlaceholder}
-        accessibilityLabel={strings.schoolPicker.searchLabel}
-        placeholderTextColor={colors.textMuted}
-        autoCorrect={false}
-        style={styles.search}
-      />
+      <View style={styles.searchBox}>
+        <Ionicons name="search" size={20} color={colors.textMuted} />
+        <TextInput
+          value={query}
+          onChangeText={setQuery}
+          placeholder={strings.schoolPicker.searchPlaceholder}
+          accessibilityLabel={strings.schoolPicker.searchLabel}
+          placeholderTextColor={colors.textMuted}
+          autoCorrect={false}
+          style={styles.search}
+        />
+      </View>
       {content}
     </OnboardingScreen>
   );
@@ -124,35 +134,37 @@ export default function ChooseSchool() {
 
 const styles = StyleSheet.create({
   title: { ...type.screenTitle, color: colors.text },
-  search: {
+  searchBox: {
     height: shape.buttonHeight,
     borderRadius: shape.cardRadius,
-    borderWidth: 1,
-    borderColor: colors.border,
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.lg,
-    ...type.body,
-    color: colors.text,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    ...shadow.card,
   },
-  list: { gap: spacing.sm },
+  search: { flex: 1, height: shape.buttonHeight, ...type.body, color: colors.text },
+  list: { gap: spacing.md },
   row: {
-    minHeight: 64,
+    minHeight: 68,
     borderRadius: shape.cardRadius,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.bg,
+    borderWidth: 2,
+    borderColor: colors.hairline,
+    backgroundColor: colors.surface,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.md,
+    ...shadow.card,
   },
-  rowSelected: { borderColor: colors.brand, backgroundColor: colors.surface },
+  rowSelected: { borderColor: colors.brand, backgroundColor: colors.brandTint },
   rowText: { flex: 1, gap: spacing.xs, alignItems: "flex-start" },
   schoolName: { ...type.headline, color: colors.text },
-  levelChip: { backgroundColor: colors.border, borderRadius: 999, paddingHorizontal: spacing.sm, paddingVertical: 2 },
-  levelText: { ...type.caption, color: colors.text },
+  levelChip: { backgroundColor: colors.brandSoft, borderRadius: shape.pill, paddingHorizontal: spacing.sm + 2, paddingVertical: 2 },
+  levelText: { ...type.caption, fontWeight: "600", color: colors.brandDark },
   muted: { ...type.caption, color: colors.textMuted },
   center: { alignItems: "center", gap: spacing.sm, paddingVertical: spacing.xl },
 });
